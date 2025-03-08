@@ -3631,7 +3631,7 @@ if useStudio then
 		LoadingTitle = "Rayfield Interface Suite",
 		Theme = 'Default',
 		Icon = 0,
-		LoadingSubtitle = "xanto da best",
+		LoadingSubtitle = "by Sirius",
 		ConfigurationSaving = {
 			Enabled = true,
 			FolderName = nil, -- Create a custom folder for your hub/game
