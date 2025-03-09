@@ -24,18 +24,6 @@ local Release = "Build 1.672"
 local RayfieldFolder = "Rayfield"
 local ConfigurationFolder = RayfieldFolder.."/Configurations"
 local ConfigurationExtension = ".rfld"
-local settingsTable = {
-	General = {
-		-- if needs be in order just make getSetting(name)
-		rayfieldOpen = {Type = 'bind', Value = 'K', Name = 'Rayfield Keybind'},
-		-- buildwarnings
-		-- rayfieldprompts
-
-	},
-	System = {
-		usageAnalytics = {Type = 'toggle', Value = true, Name = 'Anonymised Analytics'},
-	}
-}
 
 local HttpService = getService('HttpService')
 local RunService = getService('RunService')
@@ -647,13 +635,6 @@ local TabList = Main.TabList
 local dragBar = Rayfield:FindFirstChild('Drag')
 local dragInteract = dragBar and dragBar.Interact or nil
 local dragBarCosmetic = dragBar and dragBar.Drag or nil
-
-local Resonix = Instance.new("ImageLabel")
-Resonix.Parent = game:GetService("CoreGui")
-Resonix.Size = UDim2.new(0, 200, 0, 200) -- Adjust size (200x200)
-Resonix.Position = UDim2.new(0.5, -100, 0.5, -100)
-Resonix.Image = "rbxassetid://121030540866151"
-Resonix.Visible = false
 
 local dragOffset = 255
 local dragOffsetMobile = 150
@@ -1467,12 +1448,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 	if Rayfield:FindFirstChild('Loading') then
 		if getgenv and not getgenv().rayfieldCached then
 			Rayfield.Enabled = true
-			Resonix.Visible = true
 			Rayfield.Loading.Visible = false
-
-			task.wait(1.4)
+		
+		    task.wait(0.3)
 			Rayfield.Loading.Visible = false
-			Resonix.Visible = false
 		end
 	end
 
@@ -3631,10 +3610,10 @@ if useStudio then
 
 	local Window = RayfieldLibrary:CreateWindow({
 		Name = "Rayfield Example Window",
-		LoadingTitle = "Rayfield Interface Suite",
+		LoadingTitle = "Starving Artists Script",
 		Theme = 'Default',
 		Icon = 0,
-		LoadingSubtitle = "by Sirius",
+		LoadingSubtitle = "by xanto",
 		ConfigurationSaving = {
 			Enabled = true,
 			FolderName = nil, -- Create a custom folder for your hub/game
