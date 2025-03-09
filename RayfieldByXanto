@@ -648,6 +648,13 @@ local dragBar = Rayfield:FindFirstChild('Drag')
 local dragInteract = dragBar and dragBar.Interact or nil
 local dragBarCosmetic = dragBar and dragBar.Drag or nil
 
+local Resonix = Instance.new("ImageLabel")
+Resonix.Parent = Resonix.Loading
+Resonix.Size = UDim2.new(0, 200, 0, 200) -- Adjust size (200x200)
+Resonix.Position = UDim2.new(0.5, -100, 0.5, -100)
+Resonix.Image = "rbxassetid://121030540866151"
+Resonix.Visible = false
+
 local dragOffset = 255
 local dragOffsetMobile = 150
 
@@ -1460,10 +1467,12 @@ function RayfieldLibrary:CreateWindow(Settings)
 	if Rayfield:FindFirstChild('Loading') then
 		if getgenv and not getgenv().rayfieldCached then
 			Rayfield.Enabled = true
+			Resonix.Visible = true
 			Rayfield.Loading.Visible = false
 
 			task.wait(1.4)
 			Rayfield.Loading.Visible = false
+			Resonix.Visible = false
 		end
 	end
 
