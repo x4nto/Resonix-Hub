@@ -649,7 +649,7 @@ local dragInteract = dragBar and dragBar.Interact or nil
 local dragBarCosmetic = dragBar and dragBar.Drag or nil
 
 local Resonix = Instance.new("ImageLabel")
-Resonix.Parent = CoreGui
+Resonix.Parent = game:GetService("CoreGui")
 Resonix.Size = UDim2.new(0, 200, 0, 200) -- Adjust size (200x200)
 Resonix.Position = UDim2.new(0.5, -100, 0.5, -100)
 Resonix.Image = "rbxassetid://121030540866151"
