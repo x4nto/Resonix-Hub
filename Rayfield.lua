@@ -1546,12 +1546,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 		task.spawn(function()
 			while true do
 				task.wait(math.random(180, 600))
-				RayfieldLibrary:Notify({
-					Title = "Rayfield Interface",
-					Content = "Enjoying this UI library? Find it at sirius.menu/discord",
-					Duration = 7,
-					Image = 4370033185,
-				})
 			end
 		end)
 	end
@@ -3628,10 +3622,10 @@ if useStudio then
 
 	local Window = RayfieldLibrary:CreateWindow({
 		Name = "Rayfield Example Window",
-		LoadingTitle = "Rayfield Interface Suite",
+		LoadingTitle = "Starving Artists Script",
 		Theme = 'Default',
 		Icon = 0,
-		LoadingSubtitle = "by Sirius",
+		LoadingSubtitle = "by xanto",
 		ConfigurationSaving = {
 			Enabled = true,
 			FolderName = nil, -- Create a custom folder for your hub/game
