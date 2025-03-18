@@ -1,21 +1,59 @@
-local Library = "https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"
-local PandaAuth = loadstring(game:HttpGet(Library))()
+local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
+local ServiceID = "resonix" -- Just change this.
 
-PandaAuth:Initialize({ 
-    Service = "resonix", -- Name of the service for your authentication 
-    API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8",               -- Your unique API key for authentication 
-    DisplayName = "My Panda Service",  -- Display name for notifications 
-    IsDebug = true,                    -- Enable debug mode to see logs in output 
-    Allow_BlacklistUsers = false,      -- Deny blacklisted users by default 
-    GUIVersion = false,                 -- Enables GUI for entering key 
-    EnableWebhook = false,              -- Enable webhook notifications 
-    Webhook_URL = "https://yourwebhook.url", -- Webhook URL for notifications 
-    Authenticated = function() 
-        print("[Pelinda] Key authenticated successfully! Access granted.") 
-    end, 
-    NotAuthenticated = function() 
-        print("[Pelinda] Authentication failed. Access denied.") 
-    end 
-}) 
+local function getRevenueMode(service)
+    local url = "https://pandadevelopment.net/api/revenue-mode?service=" .. ServiceID
+    
+    local success, response = pcall(function()
+        return request({
+            Url = url,
+            Method = "GET",
+            Headers = { ["Content-Type"] = "application/json" }
+        })
+    end)
+    if success and response.Success then
+        local responseJson = HttpService:JSONDecode(response.Body)
+        return responseJson.revenueMode or ""
+    else
+        warn("Error getting revenue mode:", response and response.StatusCode or "Request failed")
+        return ""
+    end
+end
 
-return PandaAuth:UserKeyS
+local function GetHwid()
+    if gethwid then
+        return gethwid()
+    end
+    local success, Payload = pcall(function()
+        return request({
+            Url = "http://httpbin.org/get",
+            Method = "GET"
+        })
+    end)
+    if success and Payload and Payload.Body then
+        local JsonData = HttpService:JSONDecode(Payload.Body)
+        if JsonData and JsonData.headers then
+            for Index, Value in pairs(JsonData.headers) do
+                if Index:lower():find("fingerprint") then
+                    return Value
+                end
+            end
+        end
+    end
+end
+
+local function getKeyUrl(service)
+    local hwid = GetHwid()
+    local revenueMode = getRevenueMode(service)
+    
+    if revenueMode == "SECUREDLINKVERTISE" or 
+       revenueMode == "SECUREDLOOTLABS" or 
+       revenueMode == "SECUREDLINKVERTISEANDLOOTLABS" then
+        return "https://pandadevelopment.net/getkey/proceed_hwid?service=" .. service .. "&hwid=" .. hwid
+    else
+        return "https://pandadevelopment.net/getkey?service=" .. service .. "&hwid=" .. hwid
+    end
+end
+
+setclipboard(getKeyUrl(ServiceID))
