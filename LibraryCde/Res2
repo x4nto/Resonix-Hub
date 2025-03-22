@@ -153,7 +153,7 @@ function Library:CreateWindow(title, assetId)
     closeButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
     closeButton.BorderSizePixel = 0
     closeButton.Position = UDim2.new(0.90, 0, 0, 0)
-    closeButton.Size = UDim2.new(0, 50, 0, 34) -- Made bigger
+    closeButton.Size = UDim2.new(0, 34, 0, 34) -- Made bigger
     closeButton.Font = Enum.Font.GothamBold
     closeButton.Text = "X"
     closeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
