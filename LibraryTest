@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = {}
 
-function Library:CreateWindow(title, assetId)
+function Library:CreateWindow(title)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "ResonixHub"
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -43,7 +43,7 @@ function Library:CreateWindow(title, assetId)
     minimizeIcon.BorderSizePixel = 0
     minimizeIcon.Position = UDim2.new(0.201082051, 0, 0.203525648, 0)
     minimizeIcon.Size = UDim2.new(0, 32, 0, 31)
-    minimizeIcon.Image = "http://www.roblox.com/asset/?id=" .. assetId
+    minimizeIcon.Image = "http://www.roblox.com/asset/?id=112326644084843"
     minimizeIcon.Visible = false
     
     UICorner.Parent = minimizeIcon
