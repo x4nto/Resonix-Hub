@@ -156,7 +156,7 @@ function Library:CreateWindow(title, assetId)
     closeButton.Size = UDim2.new(0, 34, 0, 34)
     closeButton.Text = "X"
     closeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
-    closeButton.TextSize = 14
+    closeButton.TextSize = 9
 
     closeButton.MouseButton1Click:Connect(function()
         screenGui:Destroy()
