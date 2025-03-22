@@ -104,6 +104,11 @@ function Library:CreateTab(tabName)
     tabContainer.Visible = false
     tabContainer.Parent = self.Frame
 
+    -- Add UIListLayout for button stacking
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = tabContainer
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+
     tabButton.MouseButton1Click:Connect(function()
         for _, child in pairs(self.Frame:GetChildren()) do
             if child:IsA("Frame") and child.Name ~= tabContainer.Name then
@@ -125,6 +130,9 @@ function Library:CreateButton(tabContainer, buttonName, callback)
     button.Parent = tabContainer
 
     button.MouseButton1Click:Connect(callback)
+
+    -- Adjust the CanvasSize to fit all buttons
+    tabContainer.CanvasSize = UDim2.new(0, 0, 0, tabContainer.UIListLayout.AbsoluteContentSize.Y)
 end
 
 return Library
