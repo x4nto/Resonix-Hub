@@ -223,6 +223,7 @@ function Library:CreateButton(tabContainer, buttonName, callback)
     button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
     button.BorderSizePixel = 0
     button.Size = UDim2.new(1, 0, 0, 28)
+    button.Position = UDim2.new(0, -5, 0, 5)
     button.Font = Enum.Font.ArialBold
     button.Text = buttonName
     button.TextColor3 = Color3.fromRGB(255, 0, 4)
@@ -232,8 +233,7 @@ function Library:CreateButton(tabContainer, buttonName, callback)
     local UICorner = Instance.new("UICorner")
     UICorner.Parent = button
 
-    -- Move the button slightly down to align with the first tab
-    button.Position = UDim2.new(0, 1, 0.1, 0)
+    -- Move the button slightly down to align with the first
 
     -- Connect the button's click event to the callback
     button.MouseButton1Click:Connect(callback)
