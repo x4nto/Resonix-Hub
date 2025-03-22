@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = {}
 
-function Library:CreateWindow(title)
+function Library:CreateWindow(title, assetId)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "ResonixHub"
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
