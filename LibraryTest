@@ -34,11 +34,19 @@ function Library:CreateWindow(title, assetId)
     closeButton.Parent = frame
 
     local minimizeIcon = Instance.new("ImageButton")
-    minimizeIcon.Size = UDim2.new(0.1, 0, 0.1, 0)
-    minimizeIcon.Position = UDim2.new(0.05, 0, 0.05, 0)
-    minimizeIcon.Image = "rbxassetid://" .. assetId
+    local UICorner = Instance.new("UICorner")
+    
+    minimizeIcon.Name = "minimizeIcon"
     minimizeIcon.Parent = screenGui
+    minimizeIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    minimizeIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    minimizeIcon.BorderSizePixel = 0
+    minimizeIcon.Position = UDim2.new(0.201082051, 0, 0.203525648, 0)
+    minimizeIcon.Size = UDim2.new(0, 32, 0, 31)
+    minimizeIcon.Image = "http://www.roblox.com/asset/?id=" .. assetId
     minimizeIcon.Visible = false
+    
+    UICorner.Parent = minimizeIcon
 
     minimizeButton.MouseButton1Click:Connect(function()
         frame:TweenSize(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.5, true)
