@@ -79,16 +79,6 @@ function Library:CreateWindow(title, assetId)
 
     self.Frame = frame
     self.ScrollingFrame = scrollingFrame
-
-    -- Make UI draggable
-    frame.Draggable = true
-    frame.Active = true
-    frame.Selectable = true
-    
-    -- Make minimized icon draggable
-    minimizeIcon.Draggable = true
-    minimizeIcon.Active = true
-    minimizeIcon.Selectable = true
 end
 
 function Library:CreateTab(tabName)
@@ -103,6 +93,10 @@ function Library:CreateTab(tabName)
     tabContainer.Position = UDim2.new(0.2, 0, 0.1, 0)
     tabContainer.Visible = false
     tabContainer.Parent = self.Frame
+
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = tabContainer
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
 
     tabButton.MouseButton1Click:Connect(function()
         for _, child in pairs(self.Frame:GetChildren()) do
@@ -125,6 +119,10 @@ function Library:CreateButton(tabContainer, buttonName, callback)
     button.Parent = tabContainer
 
     button.MouseButton1Click:Connect(callback)
+
+    tabContainer.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tabContainer.CanvasSize = UDim2.new(0, 0, 0, tabContainer.UIListLayout.AbsoluteContentSize.Y)
+    end)
 end
 
 return Library
