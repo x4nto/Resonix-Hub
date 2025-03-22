@@ -1,6 +1,40 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = {}
 
+function Library:MakeDraggable(frame)
+    local dragging, dragInput, dragStart, startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
 function Library:CreateWindow(title, assetId)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "ResonixHub"
@@ -11,6 +45,8 @@ function Library:CreateWindow(title, assetId)
     frame.Position = UDim2.new(0.25, 0, 0.25, 0)
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     frame.Parent = screenGui
+
+    self:MakeDraggable(frame)
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, 0, 0.1, 0)
@@ -41,12 +77,14 @@ function Library:CreateWindow(title, assetId)
     minimizeIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     minimizeIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
     minimizeIcon.BorderSizePixel = 0
-    minimizeIcon.Position = UDim2.new(0.201082051, 0, 0.203525648, 0)
+    minimizeIcon.Position = UDim2.new(0.201, 0, 0.204, 0)
     minimizeIcon.Size = UDim2.new(0, 32, 0, 31)
     minimizeIcon.Image = "http://www.roblox.com/asset/?id=112326644084843"
     minimizeIcon.Visible = false
     
     UICorner.Parent = minimizeIcon
+    
+    self:MakeDraggable(minimizeIcon)
 
     minimizeButton.MouseButton1Click:Connect(function()
         frame:TweenSize(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.5, true)
