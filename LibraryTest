@@ -41,7 +41,7 @@ function Library:CreateWindow(title, assetId)
     minimizeIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     minimizeIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
     minimizeIcon.BorderSizePixel = 0
-    minimizeIcon.Position = UDim2.new(0.201082051, 0, 0.203525648, 0)
+    minimizeIcon.Position = UDim2.new(0.201, 0, 0.204, 0)
     minimizeIcon.Size = UDim2.new(0, 32, 0, 31)
     minimizeIcon.Image = "http://www.roblox.com/asset/?id=112326644084843"
     minimizeIcon.Visible = false
@@ -79,6 +79,16 @@ function Library:CreateWindow(title, assetId)
 
     self.Frame = frame
     self.ScrollingFrame = scrollingFrame
+
+    -- Make UI draggable
+    frame.Draggable = true
+    frame.Active = true
+    frame.Selectable = true
+    
+    -- Make minimized icon draggable
+    minimizeIcon.Draggable = true
+    minimizeIcon.Active = true
+    minimizeIcon.Selectable = true
 end
 
 function Library:CreateTab(tabName)
