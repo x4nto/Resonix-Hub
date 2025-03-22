@@ -17,26 +17,36 @@ function Library:CreateWindow(title)
     titleLabel.Text = title
     titleLabel.Parent = frame
 
-    -- Store frame for future reference
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Size = UDim2.new(0.2, 0, 0.9, 0)
+    scrollingFrame.Position = UDim2.new(0, 0, 0.1, 0)
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollingFrame.Parent = frame
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.ScrollBarThickness = 5
+
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = scrollingFrame
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+
     self.Frame = frame
+    self.ScrollingFrame = scrollingFrame
 end
 
 function Library:CreateTab(tabName)
     local tabButton = Instance.new("TextButton")
-    tabButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+    tabButton.Size = UDim2.new(1, 0, 0.1, 0)
     tabButton.Text = tabName
-    tabButton.Parent = self.Frame
+    tabButton.Parent = self.ScrollingFrame
 
-    -- Create a container for the tab
     local tabContainer = Instance.new("Frame")
     tabContainer.Name = tabName .. "Container"
-    tabContainer.Size = UDim2.new(1, 0, 0.9, 0)
-    tabContainer.Position = UDim2.new(0, 0, 0.1, 0)
+    tabContainer.Size = UDim2.new(0.8, 0, 0.9, 0)
+    tabContainer.Position = UDim2.new(0.2, 0, 0.1, 0)
     tabContainer.Visible = false
     tabContainer.Parent = self.Frame
 
     tabButton.MouseButton1Click:Connect(function()
-        -- Hide all other tabs
         for _, child in pairs(self.Frame:GetChildren()) do
             if child:IsA("Frame") and child.Name ~= tabContainer.Name then
                 child.Visible = false
@@ -44,6 +54,8 @@ function Library:CreateTab(tabName)
         end
         tabContainer.Visible = true
     end)
+
+    self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.ScrollingFrame.UIListLayout.AbsoluteContentSize.Y)
 
     return tabContainer
 end
