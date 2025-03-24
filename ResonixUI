@@ -1,0 +1,646 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Library = {}
+
+-- Flag to track if the user is dragging or scrolling
+local isDraggingOrScrolling = false
+
+function Library:CreateWindow(title, assetId)
+	-- Create the main ScreenGui
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "ResonixHub"
+	screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	-- Create the main window frame
+	local ResonixWindow = Instance.new("Frame")
+	ResonixWindow.Name = "ResonixWindow"
+	ResonixWindow.Parent = screenGui
+	ResonixWindow.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	ResonixWindow.BorderSizePixel = 0
+	ResonixWindow.Position = UDim2.new(0.336, 0, 0.326, 0)
+	ResonixWindow.Size = UDim2.new(0, 363, 0, 220)
+
+	-- Add rounded corners to the main window
+	local windowCorner = Instance.new("UICorner")
+	windowCorner.CornerRadius = UDim.new(0, 8) -- Adjust the corner radius as needed
+	windowCorner.Parent = ResonixWindow
+
+	-- Make the window draggable
+	ResonixWindow.Draggable = true
+	ResonixWindow.Active = true
+	ResonixWindow.Selectable = true
+
+	-- Create the top bar
+	local TopWindow = Instance.new("Frame")
+	TopWindow.Name = "TopWindow"
+	TopWindow.Parent = ResonixWindow
+	TopWindow.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	TopWindow.BorderSizePixel = 0
+	TopWindow.Size = UDim2.new(1, 0, 0, 34)
+
+	-- Add rounded corners to the top bar
+	local topBarCorner = Instance.new("UICorner")
+	topBarCorner.CornerRadius = UDim.new(0, 8) -- Adjust the corner radius as needed
+	topBarCorner.Parent = TopWindow
+
+	-- Add the title label
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Parent = TopWindow
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Position = UDim2.new(0.1, 0, 0.05, 0)
+	TextLabel.Size = UDim2.new(0, 96, 0, 30)
+	TextLabel.Font = Enum.Font.GothamBold
+	TextLabel.Text = title
+	TextLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	TextLabel.TextSize = 14
+
+	-- Add the icon
+	local ImageLabel = Instance.new("ImageLabel")
+	ImageLabel.Parent = TopWindow
+	ImageLabel.BackgroundTransparency = 1
+	ImageLabel.Position = UDim2.new(0.017, 0, 0, 0)
+	ImageLabel.Size = UDim2.new(0, 31, 0, 31)
+	ImageLabel.Image = "rbxassetid://132356790048396" -- Replace with your asset ID
+
+	-- Add a thicker horizontal line below the top bar
+	local TopLine = Instance.new("Frame")
+	TopLine.Name = "TopLine"
+	TopLine.Parent = ResonixWindow
+	TopLine.BackgroundColor3 = Color3.fromRGB(115, 0, 2)
+	TopLine.BorderSizePixel = 0
+	TopLine.Position = UDim2.new(0, 0, 0.157, 0)
+	TopLine.Size = UDim2.new(1, 0, 0, 2) -- Thicker line (2 pixels)
+	TopLine.ZIndex = 10 -- Ensure it's on top
+
+	-- Add a thicker vertical line between the tabs and the object frame
+	local TabLine = Instance.new("Frame")
+	TabLine.Name = "TabLine"
+	TabLine.Parent = ResonixWindow
+	TabLine.BackgroundColor3 = Color3.fromRGB(115, 0, 2)
+	TabLine.BorderSizePixel = 0
+	TabLine.Position = UDim2.new(0.34, 0, 0.157, 0)
+	TabLine.Size = UDim2.new(0, 2, 0, 182) -- Thicker line (2 pixels)
+	TabLine.ZIndex = 10 -- Ensure it's on top
+
+	-- Create the tab frame
+	local TabFrame = Instance.new("Frame")
+	TabFrame.Name = "TabFrame"
+	TabFrame.Parent = ResonixWindow
+	TabFrame.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	TabFrame.BorderSizePixel = 0
+	TabFrame.Position = UDim2.new(0, 0, 0.157, 0)
+	TabFrame.Size = UDim2.new(0, 132, 0, 182)
+
+	-- Add rounded corners to the tab frame
+	local tabFrameCorner = Instance.new("UICorner")
+	tabFrameCorner.CornerRadius = UDim.new(0, 8) -- Adjust the corner radius as needed
+	tabFrameCorner.Parent = TabFrame
+
+	-- Add a scrolling frame for tabs
+	local ScrollingFrame = Instance.new("ScrollingFrame")
+	ScrollingFrame.Parent = TabFrame
+	ScrollingFrame.BackgroundTransparency = 1
+	ScrollingFrame.BorderSizePixel = 0
+	ScrollingFrame.Position = UDim2.new(0.04, 0, 0.04, 0)
+	ScrollingFrame.Size = UDim2.new(0, 115, 0, 174)
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ScrollingFrame.ScrollBarThickness = 2
+
+	-- Add a UIListLayout to the scrolling frame
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = ScrollingFrame
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 5)
+
+	-- Create the content frame
+	local AllFrame = Instance.new("Frame")
+	AllFrame.Name = "AllFrame"
+	AllFrame.Parent = ResonixWindow
+	AllFrame.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	AllFrame.BorderSizePixel = 0
+	AllFrame.Position = UDim2.new(0.365, 0, 0.157, 0)
+	AllFrame.Size = UDim2.new(0, 230, 0, 182)
+
+	-- Add rounded corners to the content frame
+	local allFrameCorner = Instance.new("UICorner")
+	allFrameCorner.CornerRadius = UDim.new(0, 8) -- Adjust the corner radius as needed
+	allFrameCorner.Parent = AllFrame
+
+	-- Create the minimize icon (hidden by default)
+	local minimizeIcon = Instance.new("ImageButton")
+	minimizeIcon.Name = "minimizeIcon"
+	minimizeIcon.Parent = screenGui
+	minimizeIcon.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	minimizeIcon.BorderSizePixel = 0
+	minimizeIcon.Position = UDim2.new(0.201, 0, 0.204, 0)
+	minimizeIcon.Size = UDim2.new(0, 50, 0, 50) -- Increased size
+	minimizeIcon.Image = "rbxassetid://132356790048396" -- Replace with your asset ID
+	minimizeIcon.Visible = false
+
+	-- Add a UICorner to the minimize icon
+	local minimizeIconCorner = Instance.new("UICorner")
+	minimizeIconCorner.Parent = minimizeIcon
+	minimizeIconCorner.CornerRadius = UDim.new(0, 8) -- Adjust the corner radius as needed
+
+	-- Make the minimize icon draggable
+	minimizeIcon.Draggable = true
+	minimizeIcon.Active = true
+	minimizeIcon.Selectable = true
+
+	-- Minimize button functionality
+	local minimizeButton = Instance.new("TextButton")
+	minimizeButton.Parent = TopWindow
+	minimizeButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	minimizeButton.BorderSizePixel = 0
+	minimizeButton.Position = UDim2.new(0.81, 0, 0, 0)
+	minimizeButton.Size = UDim2.new(0, 34, 0, 34)
+	minimizeButton.Font = Enum.Font.GothamBold
+	minimizeButton.Text = "—"
+	minimizeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	minimizeButton.TextSize = 14
+
+	minimizeButton.MouseButton1Click:Connect(function()
+		-- Slide the window upward smoothly
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+			Position = UDim2.new(ResonixWindow.Position.X.Scale, ResonixWindow.Position.X.Offset, -0.5, 0) -- Slide up and out of view
+		})
+		tween:Play()
+		tween.Completed:Wait()
+		ResonixWindow.Visible = false
+		minimizeIcon.Visible = true
+	end)
+
+	-- Minimize icon functionality
+	minimizeIcon.MouseButton1Click:Connect(function()
+		ResonixWindow.Visible = true
+		-- Slide the window back down into view smoothly
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+			Position = UDim2.new(0.336, 0, 0.326, 0) -- Restore original position
+		})
+		tween:Play()
+		minimizeIcon.Visible = false
+	end)
+
+	-- Close button functionality
+	local closeButton = Instance.new("TextButton")
+	closeButton.Parent = TopWindow
+	closeButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	closeButton.BorderSizePixel = 0
+	closeButton.Position = UDim2.new(0.90, 0, 0, 0)
+	closeButton.Size = UDim2.new(0, 34, 0, 34)
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.Text = "X"
+	closeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	closeButton.TextSize = 14
+
+	local closeButtonCorner = Instance.new("UICorner")
+	closeButtonCorner.Parent = closeButton
+	closeButtonCorner.CornerRadius = UDim.new(0, 8) -- Adjust the corner radius as needed
+
+	closeButton.MouseButton1Click:Connect(function()
+		-- Animation settings
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+		-- Animate the window moving downward and fading out
+		local windowTween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+			Position = UDim2.new(ResonixWindow.Position.X.Scale, ResonixWindow.Position.X.Offset, 1.5, 0), -- Move downward
+			BackgroundTransparency = 1 -- Fade out
+		})
+		windowTween:Play()
+
+		-- Wait for the animation to complete
+		windowTween.Completed:Wait()
+
+		-- Destroy the ScreenGui after the animation
+		screenGui:Destroy()
+	end)
+
+	-- Store references to the window and frames
+	self.ResonixWindow = ResonixWindow
+	self.ScrollingFrame = ScrollingFrame
+	self.AllFrame = AllFrame
+end
+
+function Library:CreateTab(tabName)
+	-- Create the tab button
+	local tabButton = Instance.new("TextButton")
+	tabButton.Parent = self.ScrollingFrame
+	tabButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	tabButton.BorderSizePixel = 2
+	tabButton.BorderColor3 = Color3.fromRGB(94, 0, 2)
+	tabButton.Size = UDim2.new(0, 104, 0, 23)
+	tabButton.Font = Enum.Font.GothamBold
+	tabButton.Text = tabName
+	tabButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	tabButton.TextSize = 14
+
+	-- Add a UICorner to the tab button
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = tabButton
+
+	-- Create the tab container
+	local tabContainer = Instance.new("ScrollingFrame")
+	tabContainer.Name = tabName .. "Container"
+	tabContainer.Parent = self.AllFrame
+	tabContainer.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	tabContainer.BorderSizePixel = 0
+	tabContainer.Position = UDim2.new(0.05, 0, 0.05, 0)
+	tabContainer.Size = UDim2.new(0.9, 0, 0.94, 0)
+	tabContainer.Visible = false
+	tabContainer.ScrollBarThickness = 2 -- Set the scrollbar thickness
+	tabContainer.CanvasSize = UDim2.new(0, 0, 0, 0) -- Initialize canvas size
+
+	-- Add a UIListLayout to the ScrollingFrame
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = tabContainer
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 5)
+
+	-- Update the ScrollingFrame's canvas size dynamically
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		tabContainer.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+	end)
+
+	-- Tab button click functionality
+	tabButton.MouseButton1Click:Connect(function()
+		-- Hide all other tab containers
+		for _, child in pairs(self.AllFrame:GetChildren()) do
+			if child:IsA("ScrollingFrame") then
+				child.Visible = false
+			end
+		end
+		-- Show the selected tab container
+		tabContainer.Visible = true
+	end)
+
+	-- Update the scrolling frame's canvas size
+	self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.ScrollingFrame.UIListLayout.AbsoluteContentSize.Y)
+
+	return tabContainer -- Return the ScrollingFrame
+end
+
+function Library:CreateButton(tabContainer, buttonName, callback, description)
+	-- Create the button
+	local button = Instance.new("TextButton")
+	button.Parent = tabContainer
+	button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	button.BorderSizePixel = 0
+	button.Size = UDim2.new(1, 0, 0, 28)
+	button.Text = "" -- Fixed size for each button
+
+	-- Add a UICorner to the button
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = button
+
+	-- Create a TextLabel inside the button for better text control
+	local buttonText = Instance.new("TextLabel")
+	buttonText.Parent = button
+	buttonText.BackgroundTransparency = 1 -- Make the background transparent
+	buttonText.Size = UDim2.new(1, -10, 1, -10) -- Slightly smaller than the button to add padding
+	buttonText.Position = UDim2.new(0, 5, 0, 5) -- Move text 10 pixels from the left
+	buttonText.Font = Enum.Font.GothamBold
+	buttonText.Text = buttonName
+	buttonText.TextColor3 = Color3.fromRGB(255, 0, 4)
+	buttonText.TextSize = 14
+	buttonText.TextXAlignment = Enum.TextXAlignment.Left -- Align text to the left
+
+	-- Connect the button's click event to the callback
+	button.MouseButton1Click:Connect(callback)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15) -- Adjust height as needed
+		descLabel.Position = UDim2.new(0, 5, 0, 30) -- Position below the button
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+
+	-- Update the ScrollingFrame's canvas size dynamically
+	local layout = tabContainer:FindFirstChildOfClass("UIListLayout")
+	if layout then
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			tabContainer.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+		end)
+	end
+end
+
+function Library:CreateInput(tabContainer, placeholderText, callback, description)
+	-- Create the input frame
+	local inputFrame = Instance.new("Frame")
+	inputFrame.Parent = tabContainer
+	inputFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	inputFrame.BorderSizePixel = 0
+	inputFrame.Size = UDim2.new(1, 0, 0, 28)
+
+	-- Add a UICorner to the input frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = inputFrame
+
+	-- Create the text box
+	local textBox = Instance.new("TextBox")
+	textBox.Parent = inputFrame
+	textBox.BackgroundTransparency = 1
+	textBox.Size = UDim2.new(1, -10, 1, -10)
+	textBox.Position = UDim2.new(0, 5, 0, 5)
+	textBox.Font = Enum.Font.GothamBold
+	textBox.Text = ""
+	textBox.TextColor3 = Color3.fromRGB(255, 0, 4)
+	textBox.TextSize = 14
+	textBox.PlaceholderText = placeholderText
+	textBox.PlaceholderColor3 = Color3.fromRGB(150, 0, 0)
+	textBox.ClearTextOnFocus = false
+	textBox.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Connect the text box's focus lost event to the callback
+	textBox.FocusLost:Connect(function()
+		callback(textBox.Text)
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15) -- Adjust height as needed
+		descLabel.Position = UDim2.new(0, 5, 0, 30) -- Position below the input
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+end
+
+function Library:CreateToggle(tabContainer, toggleName, defaultState, callback, description)
+	-- Create the toggle frame
+	local toggleFrame = Instance.new("Frame")
+	toggleFrame.Parent = tabContainer
+	toggleFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	toggleFrame.BorderSizePixel = 0
+	toggleFrame.Size = UDim2.new(1, 0, 0, 28)
+
+	-- Add a UICorner to the toggle frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = toggleFrame
+
+	-- Create the toggle label
+	local toggleLabel = Instance.new("TextLabel")
+	toggleLabel.Parent = toggleFrame
+	toggleLabel.BackgroundTransparency = 1
+	toggleLabel.Size = UDim2.new(0.7, 0, 1, 0) -- 70% width for the label
+	toggleLabel.Position = UDim2.new(0, 5, 0, 0)
+	toggleLabel.Font = Enum.Font.GothamBold
+	toggleLabel.Text = toggleName
+	toggleLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	toggleLabel.TextSize = 14
+	toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Create the switch track
+	local switchTrack = Instance.new("Frame")
+	switchTrack.Parent = toggleFrame
+	switchTrack.BackgroundColor3 = Color3.fromRGB(64, 64, 64) -- Gray background
+	switchTrack.BorderSizePixel = 0
+	switchTrack.Size = UDim2.new(0, 40, 0, 16) -- Smaller size
+	switchTrack.Position = UDim2.new(0.9, -15, 0.8, -10) -- Positioned further to the right and lower
+	switchTrack.AnchorPoint = Vector2.new(0.5, 0.5) -- Center the switch track
+
+	-- Add a UICorner to the switch track
+	local switchTrackCorner = Instance.new("UICorner")
+	switchTrackCorner.Parent = switchTrack
+	switchTrackCorner.CornerRadius = UDim.new(1, 0) -- Fully rounded corners
+
+	-- Create the switch button
+	local switchButton = Instance.new("Frame")
+	switchButton.Parent = switchTrack
+	switchButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White button
+	switchButton.BorderSizePixel = 0
+	switchButton.Size = UDim2.new(0, 14, 0, 14) -- Smaller size
+	switchButton.Position = UDim2.new(0, 1, 0.5, -7) -- Start on the left, slightly lower
+	switchButton.AnchorPoint = Vector2.new(0, -4) -- Center vertically
+
+	-- Add a UICorner to the switch button
+	local switchButtonCorner = Instance.new("UICorner")
+	switchButtonCorner.Parent = switchButton
+	switchButtonCorner.CornerRadius = UDim.new(1, 0) -- Fully rounded corners
+
+	-- Set the initial state of the toggle
+	local isToggled = defaultState or false
+
+	-- Function to update the toggle state with animation
+	local function updateToggleState()
+		local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+		-- Animate the switch button's position
+		local tween = game:GetService("TweenService"):Create(
+			switchButton,
+			tweenInfo,
+			{
+				Position = isToggled and UDim2.new(1, -15, 0.5, -7) or UDim2.new(0, 1, 0.5, -7) -- Move right or left
+			}
+		)
+		tween:Play()
+
+		-- Animate the switch track's background color
+		local colorTween = game:GetService("TweenService"):Create(
+			switchTrack,
+			tweenInfo,
+			{
+				BackgroundColor3 = isToggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(64, 64, 64) -- Green or gray
+			}
+		)
+		colorTween:Play()
+	end
+
+	-- Set the initial state
+	updateToggleState()
+
+	-- Make the entire toggle frame clickable
+	toggleFrame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isToggled = not isToggled
+			updateToggleState()
+			callback(isToggled)
+		end
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15) -- Adjust height as needed
+		descLabel.Position = UDim2.new(0, 5, 0, 30) -- Position below the toggle
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+end
+
+function Library:CreateSlider(tabContainer, sliderName, minValue, maxValue, defaultValue, callback, description)
+	-- Create the slider frame
+	local sliderFrame = Instance.new("Frame")
+	sliderFrame.Parent = tabContainer
+	sliderFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	sliderFrame.BorderSizePixel = 0
+	sliderFrame.Size = UDim2.new(1, 0, 0, 40) -- Adjust height as needed
+
+	-- Add a UICorner to the slider frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = sliderFrame
+
+	-- Create the slider label
+	local sliderLabel = Instance.new("TextLabel")
+	sliderLabel.Parent = sliderFrame
+	sliderLabel.BackgroundTransparency = 1
+	sliderLabel.Size = UDim2.new(0.3, 0, 0.5, 0) -- 30% width for the label
+	sliderLabel.Position = UDim2.new(0, 5, 0, 0)
+	sliderLabel.Font = Enum.Font.GothamBold
+	sliderLabel.Text = sliderName
+	sliderLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	sliderLabel.TextSize = 14
+	sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Create the slider track
+	local sliderTrack = Instance.new("Frame")
+	sliderTrack.Parent = sliderFrame
+	sliderTrack.BackgroundColor3 = Color3.fromRGB(64, 64, 64) -- Gray background
+	sliderTrack.BorderSizePixel = 0
+	sliderTrack.Size = UDim2.new(1, -10, 0, 6) -- Longer track (60% width)
+	sliderTrack.Position = UDim2.new(0.02, 0, 0.7, 0) -- Align with the text (30% from left)
+	sliderTrack.AnchorPoint = Vector2.new(0, 0.5) -- Center the slider track
+
+	-- Add a UICorner to the slider track
+	local sliderTrackCorner = Instance.new("UICorner")
+	sliderTrackCorner.Parent = sliderTrack
+	sliderTrackCorner.CornerRadius = UDim.new(1, 0) -- Fully rounded corners
+
+	-- Create the fill frame (represents the slider's progress)
+	local fillFrame = Instance.new("Frame")
+	fillFrame.Parent = sliderTrack
+	fillFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 4) -- Red fill color
+	fillFrame.BorderSizePixel = 0
+	fillFrame.Size = UDim2.new(0, 0, 1, 0) -- Start with 0 width
+	fillFrame.AnchorPoint = Vector2.new(0, 0) -- Center vertically
+
+	-- Add a UICorner to the fill frame
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.Parent = fillFrame
+	fillCorner.CornerRadius = UDim.new(1, 0) -- Fully rounded corners
+
+	-- Create the value label (number on the right side)
+	local valueLabel = Instance.new("TextLabel")
+	valueLabel.Parent = sliderFrame
+	valueLabel.BackgroundTransparency = 1
+	valueLabel.Size = UDim2.new(0.1, 0, 0.5, 0) -- 10% width for the value
+	valueLabel.Position = UDim2.new(0.85, 0, 0, 0) -- Positioned in the right corner
+	valueLabel.Font = Enum.Font.GothamBold
+	valueLabel.Text = tostring(defaultValue)
+	valueLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	valueLabel.TextSize = 14
+	valueLabel.TextXAlignment = Enum.TextXAlignment.Right -- Align text to the right
+
+	-- Initialize the slider value
+	local value = math.clamp(defaultValue or minValue, minValue, maxValue)
+	local function updateSlider()
+		local percent = (value - minValue) / (maxValue - minValue)
+		fillFrame.Size = UDim2.new(percent, 0, 1, 0) -- Update the fill frame's width
+		valueLabel.Text = tostring(math.floor(value)) -- Update the value label
+	end
+
+	-- Set the initial value
+	updateSlider()
+
+	-- Make the slider draggable
+	local isDragging = false
+	local userInputService = game:GetService("UserInputService")
+
+	sliderTrack.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = true
+			-- Update the slider immediately when clicked
+			local mousePosition = input.Position.X
+			local trackPosition = sliderTrack.AbsolutePosition.X
+			local trackSize = sliderTrack.AbsoluteSize.X
+			local percent = math.clamp((mousePosition - trackPosition) / trackSize, 0, 1)
+			value = minValue + (maxValue - minValue) * percent
+			updateSlider()
+			callback(value)
+		end
+	end)
+
+	sliderTrack.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = false
+		end
+	end)
+
+	userInputService.InputChanged:Connect(function(input)
+		if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local mousePosition = input.Position.X
+			local trackPosition = sliderTrack.AbsolutePosition.X
+			local trackSize = sliderTrack.AbsoluteSize.X
+			local percent = math.clamp((mousePosition - trackPosition) / trackSize, 0, 1)
+			value = minValue + (maxValue - minValue) * percent
+			updateSlider()
+			callback(value)
+		end
+	end)
+
+	-- Hover effects
+	sliderFrame.MouseEnter:Connect(function()
+		game:GetService("TweenService"):Create(sliderFrame, TweenInfo.new(0.2), { Transparency = 0 }):Play()
+	end)
+
+	sliderFrame.MouseLeave:Connect(function()
+		game:GetService("TweenService"):Create(sliderFrame, TweenInfo.new(0.2), { Transparency = 0.4 }):Play()
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15) -- Adjust height as needed
+		descLabel.Position = UDim2.new(0, 5, 0, 45) -- Position below the slider
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+
+	-- Return the slider frame for further customization if needed
+	return sliderFrame
+end
+
+function Library:CreateLabel(tabContainer, labelText)
+	-- Create the label frame
+	local labelFrame = Instance.new("Frame")
+	labelFrame.Parent = tabContainer
+	labelFrame.BackgroundTransparency = 1 -- Make the background transparent
+	labelFrame.Size = UDim2.new(1, 0, 0, 20) -- Adjust height as needed
+
+	-- Create the text label
+	local label = Instance.new("TextLabel")
+	label.Parent = labelFrame
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.Position = UDim2.new(0, 5, 0, 0) -- Add slight padding
+	label.Font = Enum.Font.GothamBold
+	label.Text = labelText
+	label.TextColor3 = Color3.fromRGB(255, 0, 4)
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left -- Align text to the left
+end
+
+return Library
