@@ -8,9 +8,20 @@ local notify = loadstring(game:HttpGet(('https://raw.githubusercontent.com/x4nto
 
 local authenticatedCallback = nil
 
-function Library:Initialize(callback)
-    authenticatedCallback = callback
-
+function Library:Initialize()
+    -- Store the authentication state and callbacks
+    local isAuthenticated = false
+    local authCallbacks = {}
+    
+    -- Function to trigger authenticated callbacks
+    local function triggerAuthCallbacks()
+        isAuthenticated = true
+        for _, callback in ipairs(authCallbacks) do
+            callback()
+        end
+    end
+    
+    -- Initialize PandaAuth without callbacks (we'll handle them manually)
     PandaAuth:Initialize({ 
         Service = "resonix", 
         API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8", 
@@ -20,12 +31,8 @@ function Library:Initialize(callback)
         GUIVersion = false, 
         EnableWebhook = false, 
         Webhook_URL = "https://yourwebhook.url", 
-        Authenticated = function() 
-            print("[Pelinda] Key authenticated successfully! Access granted.") 
-        end, 
-        NotAuthenticated = function() 
-            print("[Pelinda] Authentication failed. Access denied.") 
-        end 
+        Authenticated = function() end,  -- Empty, we'll handle this manually
+        NotAuthenticated = function() end 
     })
 
     local ScreenGui = Instance.new("ScreenGui")
@@ -205,7 +212,7 @@ function Library:Initialize(callback)
         elseif PandaAuth:ValidateKey(UserKeyS) then
             notify.prompt('ResoniX Hub', "Key is valid", 2)
             ScreenGui:Destroy()
-            authenticatedCallback()
+            triggerAuthCallbacks()
         else 
             notify.prompt('ResoniX Hub', "Key is invalid", 2)
         end 
@@ -220,6 +227,17 @@ function Library:Initialize(callback)
         setclipboard("https://discord.gg/5PqARnQQVC")
         notify.prompt('ResoniX Hub', "Discord Link Copied Succesfully", 2)
     end)
+end
+
+function Library:OnAuthenticated(callback)
+        if isAuthenticated then
+            callback()
+        else
+            table.insert(authCallbacks, callback)
+        end
+    end
+
+    return Library
 end
 
 function Library:CreateWindow(title, assetId)
