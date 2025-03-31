@@ -6,7 +6,11 @@ local Library = {}
 local PandaAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"))()
 local notify = loadstring(game:HttpGet(('https://raw.githubusercontent.com/x4nto/Useful-Scripts/xantoscripts/NotifyLib/NotifyLib.lua'),true))()
 
-function Library:Initialize()
+local authenticatedCallback = nil
+
+function Library:Initialize(callback)
+    authenticatedCallback = callback
+
     PandaAuth:Initialize({ 
         Service = "resonix", 
         API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8", 
@@ -201,6 +205,7 @@ function Library:Initialize()
         elseif PandaAuth:ValidateKey(UserKeyS) then
             notify.prompt('ResoniX Hub', "Key is valid", 2)
             ScreenGui:Destroy()
+            authenticatedCallback()
         else 
             notify.prompt('ResoniX Hub', "Key is invalid", 2)
         end 
