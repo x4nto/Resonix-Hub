@@ -1,15 +1,25 @@
-local PandaAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"))()
-local notify = loadstring(game:HttpGet(('https://raw.githubusercontent.com/x4nto/Useful-Scripts/xantoscripts/NotifyLib/NotifyLib.lua'),true))()
-   
-function keysystem:authenticate()
-    PandaAuth:Initialize({
-        Service = "resonix",
-        API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8",
-        DisplayName = "My Panda Service",
-        IsDebug = true,
-        Authenticated = function() end,
-        NotAuthenticated = function() end
-    })
+local keysystem = {}
+
+function keysystem:Textbutton(callback)
+    local PandaAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"))()
+    local notify = loadstring(game:HttpGet(('https://raw.githubusercontent.com/x4nto/Useful-Scripts/xantoscripts/NotifyLib/NotifyLib.lua'),true))()
+
+    PandaAuth:Initialize({ 
+        Service = "resonix", 
+        API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8", 
+        DisplayName = "My Panda Service",  -- Display name for notifications 
+        IsDebug = true,                    -- Enable debug mode to see logs in output 
+        Allow_BlacklistUsers = false,      -- Deny blacklisted users by default 
+        GUIVersion = false,                 -- Enables GUI for entering key 
+        EnableWebhook = false,              -- Enable webhook notifications 
+        Webhook_URL = "https://yourwebhook.url", -- Webhook URL for notifications 
+        Authenticated = function() 
+            print("[Pelinda] Key authenticated successfully! Access granted.") 
+        end, 
+        NotAuthenticated = function() 
+            print("[Pelinda] Authentication failed. Access denied.") 
+        end 
+    }) 
 
     local ScreenGui = Instance.new("ScreenGui")
     local Frame = Instance.new("Frame")
@@ -30,6 +40,8 @@ function keysystem:authenticate()
     local TextButton_3 = Instance.new("TextButton")
     local UICorner_6 = Instance.new("UICorner")
     local UICorner_7 = Instance.new("UICorner")
+
+    --Properties:
 
     ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -161,15 +173,15 @@ function keysystem:authenticate()
 
     UICorner_6.Parent = TextButton_3
 
-    local frame = Frame
+    local frame = Frame -- Change this to the appropriate Frame reference
     frame.Draggable = true
     frame.Active = true
     frame.Selectable = true
 
     local HttpService = game:GetService("HttpService") 
     local function generateRandomKey() 
-        local randomString = HttpService:GenerateGUID(false)
-        randomString = randomString:gsub("-", "")
+        local randomString = HttpService:GenerateGUID(false) -- Generate a GUID without braces 
+        randomString = randomString:gsub("-", "") -- Remove dashes from the GUID 
         return "pandadev_" .. randomString 
     end 
     print('Panda-Pelican Developer Kit Loaded') 
@@ -183,24 +195,14 @@ function keysystem:authenticate()
 
     TextButton_2.MouseButton1Click:Connect(function()
         local UserKeyS = TextBox.Text
-
-        -- Tamper check (NEW)
-        if PandaAuth:ValidateKey(generateRandomKey()) then
-            notify.prompt("Anti-Tamper", "Invalid access detected.", 2)
-            isTampered = true
-            authenticated = false
-            return
-        end
-
-        -- Normal key validation
-        if PandaAuth:ValidateKey(UserKeyS) then
-            notify.prompt("Success", "Key is valid!", 2)
-            authenticated = true
-            ScreenGui:Destroy()
-        else
-            notify.prompt("Error", "Invalid key.", 2)
-            authenticated = false
-        end
+        if PandaAuth:ValidateKey(generateRandomKey()) then 
+            notify.prompt('ResoniX Hub', "Tampering detected", 2)
+        elseif PandaAuth:ValidateKey(UserKeyS) then 
+            callback() -- Execute the callback function when key is valid
+        else 
+            notify.prompt('ResoniX Hub', "Key is invalid", 2)
+        end 
+        print('----------------------------------------------')
     end)
 
     TextButton_4.MouseButton1Click:Connect(function()
@@ -212,3 +214,5 @@ function keysystem:authenticate()
         notify.prompt('ResoniX Hub', "Discord Link Copied Succesfully", 2)
     end)
 end
+
+return keysystem
