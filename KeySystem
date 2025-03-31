@@ -1,7 +1,7 @@
 local PandaAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"))()
 local notify = loadstring(game:HttpGet(('https://raw.githubusercontent.com/x4nto/Useful-Scripts/xantoscripts/NotifyLib/NotifyLib.lua'),true))()
    
-function Keysystem:authenticate()
+function keysystem:authenticate()
     PandaAuth:Initialize({
         Service = "resonix",
         API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8",
