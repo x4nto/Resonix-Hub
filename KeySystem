@@ -199,6 +199,8 @@ function keysystem:Textbutton(callback)
             notify.prompt('ResoniX Hub', "Tampering detected", 2)
         elseif PandaAuth:ValidateKey(UserKeyS) then 
             callback() -- Execute the callback function when key is valid
+            ScreenGui:Destroy()
+            notify.prompt('ResoniX Hub', "Key is valid", 2)
         else 
             notify.prompt('ResoniX Hub', "Key is invalid", 2)
         end 
