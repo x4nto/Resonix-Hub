@@ -1,0 +1,214 @@
+local PandaAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"))()
+local notify = loadstring(game:HttpGet(('https://raw.githubusercontent.com/x4nto/Useful-Scripts/xantoscripts/NotifyLib/NotifyLib.lua'),true))()
+   
+function Keysystem:authenticate()
+    PandaAuth:Initialize({
+        Service = "resonix",
+        API_Key = "1a7a8ae50ef33f8ee953e0236e3b24c717a70a317af233ae5dc2a88dfc768cb8",
+        DisplayName = "My Panda Service",
+        IsDebug = true,
+        Authenticated = function() end,
+        NotAuthenticated = function() end
+    })
+
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local UICorner = Instance.new("UICorner")
+    local Frame_2 = Instance.new("Frame")
+    local UICorner_2 = Instance.new("UICorner")
+    local ImageLabel = Instance.new("ImageLabel")
+    local UICorner_3 = Instance.new("UICorner")
+    local ImageLabel_2 = Instance.new("ImageLabel")
+    local ImageLabel_3 = Instance.new("ImageLabel")
+    local ImageLabel_4 = Instance.new("ImageLabel")
+    local TextBox = Instance.new("TextBox")
+    local TextButton = Instance.new("TextButton")
+    local UICorner_4 = Instance.new("UICorner")
+    local TextButton_4 = Instance.new("TextButton")
+    local TextButton_2 = Instance.new("TextButton")
+    local UICorner_5 = Instance.new("UICorner")
+    local TextButton_3 = Instance.new("TextButton")
+    local UICorner_6 = Instance.new("UICorner")
+    local UICorner_7 = Instance.new("UICorner")
+
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    Frame.Parent = ScreenGui
+    Frame.BackgroundColor3 = Color3.fromRGB(27, 27, 27)
+    Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    Frame.BorderSizePixel = 0
+    Frame.Position = UDim2.new(0.356521726, 0, 0.349206358, 0)
+    Frame.Size = UDim2.new(0, 297, 0, 190)
+
+    UICorner.Parent = Frame
+
+    Frame_2.Parent = Frame
+    Frame_2.BackgroundColor3 = Color3.fromRGB(27, 27, 27)
+    Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    Frame_2.BorderSizePixel = 0
+    Frame_2.Position = UDim2.new(0, 0, -2.40928244e-07, 0)
+    Frame_2.Size = UDim2.new(1, 0, 1.00000012, 0)
+
+    UICorner_2.Parent = Frame_2
+
+    ImageLabel.Parent = Frame_2
+    ImageLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ImageLabel.BorderSizePixel = 0
+    ImageLabel.Position = UDim2.new(2.055056e-07, 0, 1.60618825e-07, 0)
+    ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+    ImageLabel.Image = "rbxassetid://2041062764"
+    ImageLabel.ImageTransparency = 0.720
+
+    UICorner_3.Parent = ImageLabel
+
+    ImageLabel_2.Parent = Frame_2
+    ImageLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ImageLabel_2.BackgroundTransparency = 1.000
+    ImageLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ImageLabel_2.BorderSizePixel = 0
+    ImageLabel_2.Position = UDim2.new(0, 0, -0.315789282, 0)
+    ImageLabel_2.Size = UDim2.new(1, 0, 1, 0)
+    ImageLabel_2.Image = "rbxassetid://13916156740"
+    ImageLabel_2.ImageColor3 = Color3.fromRGB(255, 0, 4)
+
+    ImageLabel_3.Parent = Frame_2
+    ImageLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ImageLabel_3.BackgroundTransparency = 1.000
+    ImageLabel_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ImageLabel_3.BorderSizePixel = 0
+    ImageLabel_3.Position = UDim2.new(0.0909090936, 0, -0.521052539, 0)
+    ImageLabel_3.Size = UDim2.new(0.818181813, 0, 1.20526302, 0)
+    ImageLabel_3.Image = "http://www.roblox.com/asset/?id=14386551937"
+
+    ImageLabel_4.Parent = Frame_2
+    ImageLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ImageLabel_4.BackgroundTransparency = 1.000
+    ImageLabel_4.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ImageLabel_4.BorderSizePixel = 0
+    ImageLabel_4.Position = UDim2.new(0.0269360263, 0, 0.289473653, 0)
+    ImageLabel_4.Size = UDim2.new(0.343434334, 0, 0.563157856, 0)
+    ImageLabel_4.Image = "http://www.roblox.com/asset/?id=14337233838"
+
+    TextBox.Parent = Frame_2
+    TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.BackgroundTransparency = 1.000
+    TextBox.BorderColor3 = Color3.fromRGB(255, 0, 4)
+    TextBox.BorderSizePixel = 0
+    TextBox.Position = UDim2.new(0.397306383, 0, 0.231579095, 0)
+    TextBox.Size = UDim2.new(0.572390556, 0, 0.268421143, 0)
+    TextBox.Font = Enum.Font.GothamBold
+    TextBox.PlaceholderColor3 = Color3.fromRGB(178, 0, 3)
+    TextBox.PlaceholderText = "Enter Key..."
+    TextBox.Text = ""
+    TextBox.TextColor3 = Color3.fromRGB(178, 0, 3)
+    TextBox.TextSize = 14.000
+
+    TextButton.Parent = Frame_2
+    TextButton.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+    TextButton.BackgroundTransparency = 0.700
+    TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton.BorderSizePixel = 0
+    TextButton.Position = UDim2.new(0.397306383, 0, 0.684210658, 0)
+    TextButton.Size = UDim2.new(0.585858583, 0, 0.131579056, 0)
+    TextButton.Font = Enum.Font.GothamBold
+    TextButton.Text = "Copy Discord"
+    TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton.TextSize = 14.000
+
+    UICorner_4.Parent = TextButton
+
+    TextButton_2.Parent = Frame_2
+    TextButton_2.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+    TextButton_2.BackgroundTransparency = 0.700
+    TextButton_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_2.BorderSizePixel = 0
+    TextButton_2.Position = UDim2.new(0.686868668, 0, 0.505263269, 0)
+    TextButton_2.Size = UDim2.new(0.296296299, 0, 0.131579056, 0)
+    TextButton_2.Font = Enum.Font.GothamBold
+    TextButton_2.Text = "Submit"
+    TextButton_2.TextColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_2.TextSize = 14.000
+
+    UICorner_5.Parent = TextButton_2
+
+    TextButton_3.Parent = Frame_2
+    TextButton_3.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+    TextButton_3.BackgroundTransparency = 0.700
+    TextButton_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_3.BorderSizePixel = 0
+    TextButton_3.Position = UDim2.new(0.397306383, 0, 0.505263269, 0)
+    TextButton_3.Size = UDim2.new(0.265993267, 0, 0.131579056, 0)
+    TextButton_3.Font = Enum.Font.GothamBold
+    TextButton_3.Text = "GetKey"
+    TextButton_3.TextColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_3.TextSize = 14.000
+
+    TextButton_4.Parent = Frame_2
+    TextButton_4.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+    TextButton_4.BackgroundTransparency = 1.000
+    TextButton_4.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_4.BorderSizePixel = 0
+    TextButton_4.Position = UDim2.new(0.909090936, 0, 0.026315948, 0)
+    TextButton_4.Size = UDim2.new(0.0707070678, 0, 0.100000121, 0)
+    TextButton_4.Font = Enum.Font.GothamBold
+    TextButton_4.Text = "x"
+    TextButton_4.TextColor3 = Color3.fromRGB(255, 0, 0)
+    TextButton_4.TextSize = 14.000
+
+    UICorner_7.Parent = TextButton_4
+
+    UICorner_6.Parent = TextButton_3
+
+    local frame = Frame
+    frame.Draggable = true
+    frame.Active = true
+    frame.Selectable = true
+
+    local HttpService = game:GetService("HttpService") 
+    local function generateRandomKey() 
+        local randomString = HttpService:GenerateGUID(false)
+        randomString = randomString:gsub("-", "")
+        return "pandadev_" .. randomString 
+    end 
+    print('Panda-Pelican Developer Kit Loaded') 
+    print('----------------------------------------------') 
+    print('[Console] - Copied Key:'.. PandaAuth:GetKey())
+
+    TextButton_3.MouseButton1Click:Connect(function()
+        setclipboard(PandaAuth:GetKey())
+        notify.prompt('ResoniX Hub', "Key Link Copied to Your Clipboard, Paste it in your Browser", 2)
+    end)
+
+    TextButton_2.MouseButton1Click:Connect(function()
+        local UserKeyS = TextBox.Text
+
+        -- Tamper check (NEW)
+        if PandaAuth:ValidateKey(generateRandomKey()) then
+            notify.prompt("Anti-Tamper", "Invalid access detected.", 2)
+            isTampered = true
+            authenticated = false
+            return
+        end
+
+        -- Normal key validation
+        if PandaAuth:ValidateKey(UserKeyS) then
+            notify.prompt("Success", "Key is valid!", 2)
+            authenticated = true
+            ScreenGui:Destroy()
+        else
+            notify.prompt("Error", "Invalid key.", 2)
+            authenticated = false
+        end
+    end)
+
+    TextButton_4.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    TextButton.MouseButton1Click:Connect(function()
+        setclipboard("https://discord.gg/5PqARnQQVC")
+        notify.prompt('ResoniX Hub', "Discord Link Copied Succesfully", 2)
+    end)
+end
