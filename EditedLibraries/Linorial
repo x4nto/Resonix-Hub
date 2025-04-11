@@ -5896,12 +5896,6 @@ local function OnTeamChange()
     end;
 end;
 
-local function Library:Hide()
-    if ScreenGui then
-        ScreenGui:Destroy()
-    end
-end
-
 Library:GiveSignal(Players.PlayerAdded:Connect(OnPlayerChange));
 Library:GiveSignal(Players.PlayerRemoving:Connect(OnPlayerChange));
 
