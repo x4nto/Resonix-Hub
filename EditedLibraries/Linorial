@@ -5896,57 +5896,10 @@ local function OnTeamChange()
     end;
 end;
 
-function Library:Destroy()
-    -- Disconnect all active signals and event listeners
-    for idx = #Library.Signals, 1, -1 do
-        local connection = table.remove(Library.Signals, idx)
-        if connection and typeof(connection) == 'RBXScriptConnection' then
-            connection:Disconnect()
-        end
-    end
-
-    -- Call all registered unload callbacks
-    for _, callback in ipairs(Library.UnloadSignals) do
-        Library:SafeCallback(callback)
-    end
-
-    -- Destroy the main UI container and its children
+local function Library:Hide()
     if ScreenGui then
         ScreenGui:Destroy()
-        ScreenGui = nil
     end
-
-    -- Unbind the custom cursor render step
-    if RunService:IsBoundToRenderStep("LinoriaCursor") then
-        RunService:UnbindFromRenderStep("LinoriaCursor")
-    end
-
-    -- Clear global references to prevent memory leaks
-    getgenv().Linoria = nil
-    getgenv().Toggles = nil
-    getgenv().Options = nil
-    getgenv().Labels = nil
-    getgenv().Buttons = nil
-    getgenv().Library = nil
-
-    -- Reset internal registries and tables
-    table.clear(Library.Registry)
-    table.clear(Library.RegistryMap)
-    table.clear(Library.HudRegistry)
-    table.clear(Library.OpenedFrames)
-    table.clear(Library.DependencyBoxes)
-    table.clear(Library.UnloadSignals)
-    table.clear(Library.Signals)
-
-    -- Remove additional references
-    LibraryMainOuterFrame = nil
-    Library.Window = nil
-    Library.KeybindFrame = nil
-    Library.KeybindContainer = nil
-    Library.LeftNotificationArea = nil
-    Library.RightNotificationArea = nil
-    Library.Watermark = nil
-    Library.WatermarkText = nil
 end
 
 Library:GiveSignal(Players.PlayerAdded:Connect(OnPlayerChange));
