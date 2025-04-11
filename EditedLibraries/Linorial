@@ -5897,30 +5897,31 @@ local function OnTeamChange()
 end;
 
 function Library:Destroy()
-    -- Disconnect all signals and callbacks
-    for Idx = #Library.Signals, 1, -1 do
-        local Connection = table.remove(Library.Signals, Idx)
-        if Connection then
-            Connection:Disconnect()
+    -- Disconnect all active signals and event listeners
+    for idx = #Library.Signals, 1, -1 do
+        local connection = table.remove(Library.Signals, idx)
+        if connection and typeof(connection) == 'RBXScriptConnection' then
+            connection:Disconnect()
         end
     end
 
-    -- Call all unload callbacks
-    for _, UnloadCallback in pairs(Library.UnloadSignals) do
-        Library:SafeCallback(UnloadCallback)
+    -- Call all registered unload callbacks
+    for _, callback in ipairs(Library.UnloadSignals) do
+        Library:SafeCallback(callback)
     end
 
-    -- Destroy the main UI container and all children
+    -- Destroy the main UI container and its children
     if ScreenGui then
         ScreenGui:Destroy()
+        ScreenGui = nil
     end
 
-    -- Remove custom cursor and unbind render step
+    -- Unbind the custom cursor render step
     if RunService:IsBoundToRenderStep("LinoriaCursor") then
         RunService:UnbindFromRenderStep("LinoriaCursor")
     end
 
-    -- Clear global references
+    -- Clear global references to prevent memory leaks
     getgenv().Linoria = nil
     getgenv().Toggles = nil
     getgenv().Options = nil
@@ -5928,13 +5929,24 @@ function Library:Destroy()
     getgenv().Buttons = nil
     getgenv().Library = nil
 
-    -- Clear internal registries
+    -- Reset internal registries and tables
     table.clear(Library.Registry)
     table.clear(Library.RegistryMap)
     table.clear(Library.HudRegistry)
     table.clear(Library.OpenedFrames)
     table.clear(Library.DependencyBoxes)
     table.clear(Library.UnloadSignals)
+    table.clear(Library.Signals)
+
+    -- Remove additional references
+    LibraryMainOuterFrame = nil
+    Library.Window = nil
+    Library.KeybindFrame = nil
+    Library.KeybindContainer = nil
+    Library.LeftNotificationArea = nil
+    Library.RightNotificationArea = nil
+    Library.Watermark = nil
+    Library.WatermarkText = nil
 end
 
 Library:GiveSignal(Players.PlayerAdded:Connect(OnPlayerChange));
