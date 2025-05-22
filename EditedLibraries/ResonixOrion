@@ -633,9 +633,6 @@ function OrionLib:MakeWindow(WindowConfig)
 		}),
 		DragPoint,
 		WindowStuff
-                MainWindow.Draggable = true
-	        MainWindow.Active = true
-	        MainWindow.Selectable = true
 	}), "Main")
 
 	if WindowConfig.ShowIcon then
