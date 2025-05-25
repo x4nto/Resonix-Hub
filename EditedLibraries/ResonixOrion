@@ -1,5 +1,3 @@
-
-
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -20,9 +18,17 @@ local OrionLib = {
 			Divider = Color3.fromRGB(60, 60, 60),
 			Text = Color3.fromRGB(240, 240, 240),
 			TextDark = Color3.fromRGB(150, 150, 150)
+		},
+		DarkRed = {
+			Main = Color3.fromRGB(40, 10, 10),        -- Deep dark red base
+			Second = Color3.fromRGB(50, 15, 15),      -- Slightly lighter dark red
+			Stroke = Color3.fromRGB(90, 30, 30),      -- Reddish border color
+			Divider = Color3.fromRGB(90, 30, 30),     -- Matching divider color
+			Text = Color3.fromRGB(240, 220, 220),    -- Light pinkish text for contrast
+			TextDark = Color3.fromRGB(150, 100, 100)  -- Darker red text for secondary elements
 		}
 	},
-	SelectedTheme = "Default",
+	SelectedTheme = "DarkRed",
 	Folder = nil,
 	SaveCfg = false
 }
@@ -98,34 +104,64 @@ task.spawn(function()
 end)
 
 local function AddDraggingFunctionality(DragPoint, Main)
-	pcall(function()
-		local Dragging, DragInput, MousePos, FramePos = false
-		DragPoint.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Dragging = true
-				MousePos = Input.Position
-				FramePos = Main.Position
-
-				Input.Changed:Connect(function()
-					if Input.UserInputState == Enum.UserInputState.End then
-						Dragging = false
-					end
-				end)
-			end
-		end)
-		DragPoint.InputChanged:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseMovement then
-				DragInput = Input
-			end
-		end)
-		UserInputService.InputChanged:Connect(function(Input)
-			if Input == DragInput and Dragging then
-				local Delta = Input.Position - MousePos
-				TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
-			end
-		end)
-	end)
-end   
+    pcall(function()
+        local Dragging, DragInput, MousePos, FramePos = false
+        local TouchStartPos, TouchStartFramePos
+        
+        -- Mouse/desktop input
+        DragPoint.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                Dragging = true
+                MousePos = Input.Position
+                FramePos = Main.Position
+                
+                Input.Changed:Connect(function()
+                    if Input.UserInputState == Enum.UserInputState.End then
+                        Dragging = false
+                    end
+                end)
+            end
+        end)
+        
+        -- Touch/mobile input
+        DragPoint.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.Touch then
+                Dragging = true
+                TouchStartPos = Input.Position
+                TouchStartFramePos = Main.Position
+                
+                Input.Changed:Connect(function()
+                    if Input.UserInputState == Enum.UserInputState.End then
+                        Dragging = false
+                    end
+                end)
+            end
+        end)
+        
+        DragPoint.InputChanged:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
+                DragInput = Input
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(Input)
+            if Input == DragInput and Dragging then
+                if Input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local Delta = Input.Position - MousePos
+                    TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
+                    }):Play()
+                elseif Input.UserInputType == Enum.UserInputType.Touch then
+                    local Delta = Input.Position - TouchStartPos
+                    TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Position = UDim2.new(TouchStartFramePos.X.Scale, TouchStartFramePos.X.Offset + Delta.X, 
+                                           TouchStartFramePos.Y.Scale, TouchStartFramePos.Y.Offset + Delta.Y)
+                    }):Play()
+                end
+            end
+        end)
+    end)
+end
 
 local function Create(Name, Properties, Children)
 	local Object = Instance.new(Name)
@@ -1709,15 +1745,15 @@ function OrionLib:MakeWindow(WindowConfig)
 		end
 		return ElementFunction   
 	end  
-	
+
 	OrionLib:MakeNotification({
 		Name = "UI Library Upgrade",
 		Content = "New UI Library Available at sirius.menu/discord and sirius.menu/rayfield",
 		Time = 5
 	})
-	
 
-	
+
+
 	return TabFunction
 end   
 
