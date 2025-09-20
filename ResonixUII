@@ -1,0 +1,1699 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local Library = {}
+
+function Library:CreateWindow(title, assetId)
+	-- Create the main ScreenGui
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "ResonixHub"
+	screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	-- Create the main window frame
+	local ResonixWindow = Instance.new("Frame")
+	ResonixWindow.Name = "ResonixWindow"
+	ResonixWindow.Parent = screenGui
+	ResonixWindow.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	ResonixWindow.BorderSizePixel = 0
+	ResonixWindow.Position = UDim2.new(0.336, 0, 0.326, 0)
+	ResonixWindow.Size = UDim2.new(0, 363, 0, 220)
+	ResonixWindow.Active = true
+	ResonixWindow.Selectable = true
+
+	-- Add rounded corners to the main window
+	local windowCorner = Instance.new("UICorner")
+	windowCorner.CornerRadius = UDim.new(0, 8)
+	windowCorner.Parent = ResonixWindow
+
+	-- Create the top bar
+	local TopWindow = Instance.new("Frame")
+	TopWindow.Name = "TopWindow"
+	TopWindow.Parent = ResonixWindow
+	TopWindow.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	TopWindow.BorderSizePixel = 0
+	TopWindow.Size = UDim2.new(1, 0, 0, 34)
+	TopWindow.Active = true
+	TopWindow.Selectable = true
+
+	-- Add rounded corners to the top bar
+	local topBarCorner = Instance.new("UICorner")
+	topBarCorner.CornerRadius = UDim.new(0, 8)
+	topBarCorner.Parent = TopWindow
+
+	-- Make the window draggable only when holding mouse button (like original Roblox UI)
+	local dragStartPos
+	local windowStartPos
+	local isDragging = false
+
+	local function updateDrag(input)
+		if not isDragging then return end
+
+		local delta = input.Position - dragStartPos
+		ResonixWindow.Position = UDim2.new(
+			windowStartPos.X.Scale, 
+			windowStartPos.X.Offset + delta.X,
+			windowStartPos.Y.Scale, 
+			windowStartPos.Y.Offset + delta.Y
+		)
+	end
+
+	TopWindow.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			isDragging = true
+			dragStartPos = input.Position
+			windowStartPos = ResonixWindow.Position
+
+			-- Change cursor to show dragging
+			ResonixWindow.Input.MouseIcon = "rbxasset://SystemCursors/SizeAll"
+
+			-- Capture the input to prevent camera movement
+			input:Capture()
+		end
+	end)
+
+	TopWindow.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			isDragging = false
+			ResonixWindow.Input.MouseIcon = ""
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement then
+			updateDrag(input)
+		end
+	end)
+
+	-- Mobile touch handling (prevents camera movement while dragging)
+	local touchStartPos
+	local touchStartTime
+	local isTouchDragging = false
+
+	TopWindow.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			touchStartPos = input.Position
+			windowStartPos = ResonixWindow.Position
+			touchStartTime = tick()
+		end
+	end)
+
+	TopWindow.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			local currentPos = input.Position
+			local delta = currentPos - touchStartPos
+
+			-- Only start dragging after a small movement threshold to prevent accidental drags
+			if delta.magnitude > 5 then
+				isTouchDragging = true
+				ResonixWindow.Position = UDim2.new(
+					windowStartPos.X.Scale, 
+					windowStartPos.X.Offset + delta.X,
+					windowStartPos.Y.Scale, 
+					windowStartPos.Y.Offset + delta.Y
+				)
+				input:Capture()
+			end
+		end
+	end)
+
+	TopWindow.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			isTouchDragging = false
+		end
+	end)
+
+	-- Add the title label
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Parent = TopWindow
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Position = UDim2.new(0.11, 0, 0, 0) -- Changed Y position to 0
+	TextLabel.Size = UDim2.new(0.7, 0, 1, 0) -- Takes up 70% of width
+	TextLabel.Font = Enum.Font.GothamBold
+	TextLabel.Text = title
+	TextLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	TextLabel.TextSize = 14
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Left -- Left aligned text
+	TextLabel.TextTruncate = Enum.TextTruncate.AtEnd -- Truncate with ... if too long
+	TextLabel.ClipsDescendants = true
+
+	-- Add the icon
+	local ImageLabel = Instance.new("ImageLabel")
+	ImageLabel.Parent = TopWindow
+	ImageLabel.BackgroundTransparency = 1
+	ImageLabel.Position = UDim2.new(0.017, 0, 0.04, 0)
+	ImageLabel.Size = UDim2.new(0, 31, 0, 31)
+	ImageLabel.Image = "rbxassetid://132356790048396"
+
+	-- [Rest of your window creation code remains the same...]
+	-- Add a thicker horizontal line below the top bar
+	local TopLine = Instance.new("Frame")
+	TopLine.Name = "TopLine"
+	TopLine.Parent = ResonixWindow
+	TopLine.BackgroundColor3 = Color3.fromRGB(115, 0, 2)
+	TopLine.BorderSizePixel = 0
+	TopLine.Position = UDim2.new(0, 0, 0.157, 0)
+	TopLine.Size = UDim2.new(1, 0, 0, 2)
+	TopLine.ZIndex = 10
+
+	-- Add a thicker vertical line between the tabs and the object frame
+	local TabLine = Instance.new("Frame")
+	TabLine.Name = "TabLine"
+	TabLine.Parent = ResonixWindow
+	TabLine.BackgroundColor3 = Color3.fromRGB(115, 0, 2)
+	TabLine.BorderSizePixel = 0
+	TabLine.Position = UDim2.new(0.34, 0, 0.157, 0)
+	TabLine.Size = UDim2.new(0, 2, 0, 182)
+	TabLine.ZIndex = 10
+
+	-- Create the tab frame
+	local TabFrame = Instance.new("Frame")
+	TabFrame.Name = "TabFrame"
+	TabFrame.Parent = ResonixWindow
+	TabFrame.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	TabFrame.BorderSizePixel = 0
+	TabFrame.Position = UDim2.new(0, 0, 0.157, 0)
+	TabFrame.Size = UDim2.new(0, 132, 0, 182)
+
+	-- Add rounded corners to the tab frame
+	local tabFrameCorner = Instance.new("UICorner")
+	tabFrameCorner.CornerRadius = UDim.new(0, 8)
+	tabFrameCorner.Parent = TabFrame
+
+	-- Add a scrolling frame for tabs
+	local ScrollingFrame = Instance.new("ScrollingFrame")
+	ScrollingFrame.Parent = TabFrame
+	ScrollingFrame.BackgroundTransparency = 1
+	ScrollingFrame.BorderSizePixel = 0
+	ScrollingFrame.Position = UDim2.new(0.04, 0, 0.04, 0)
+	ScrollingFrame.Size = UDim2.new(0, 115, 0, 174)
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ScrollingFrame.ScrollBarThickness = 2
+
+	-- Add a UIListLayout to the scrolling frame
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = ScrollingFrame
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 5)
+
+	-- Create the content frame
+	local AllFrame = Instance.new("Frame")
+	AllFrame.Name = "AllFrame"
+	AllFrame.Parent = ResonixWindow
+	AllFrame.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	AllFrame.BorderSizePixel = 0
+	AllFrame.Position = UDim2.new(0.365, 0, 0.157, 0)
+	AllFrame.Size = UDim2.new(0, 230, 0, 182)
+
+	-- Add rounded corners to the content frame
+	local allFrameCorner = Instance.new("UICorner")
+	allFrameCorner.CornerRadius = UDim.new(0, 8)
+	allFrameCorner.Parent = AllFrame
+
+	-- Create the minimize icon (hidden by default)
+	local minimizeIcon = Instance.new("ImageButton")
+	minimizeIcon.Name = "minimizeIcon"
+	minimizeIcon.Parent = screenGui
+	minimizeIcon.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	minimizeIcon.BorderSizePixel = 0
+	minimizeIcon.Position = UDim2.new(0.201, 0, 0.204, 0)
+	minimizeIcon.Size = UDim2.new(0, 50, 0, 50) -- Increased size for better touchability
+	minimizeIcon.Image = "rbxassetid://132356790048396"
+	minimizeIcon.Visible = false
+
+	-- Add a UICorner to the minimize icon
+	local minimizeIconCorner = Instance.new("UICorner")
+	minimizeIconCorner.Parent = minimizeIcon
+	minimizeIconCorner.CornerRadius = UDim.new(0, 8)
+
+	-- Enable dragging properties
+	minimizeIcon.Draggable = true
+	minimizeIcon.Active = true
+	minimizeIcon.Selectable = true
+
+	-- Mouse click handling (for restoring window)
+	minimizeIcon.MouseButton1Click:Connect(function()
+		-- Only restore if not dragging (handled by the touch events for mobile)
+		if not isDragging and UserInputService:GetLastInputType() == Enum.UserInputType.MouseButton1 then
+			ResonixWindow.Visible = true
+			-- Slide the window back down into view smoothly
+			local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			local tween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+				Position = UDim2.new(0.336, 0, 0.326, 0)
+			})
+			tween:Play()
+			minimizeIcon.Visible = false
+		end
+	end)
+
+	-- Minimize button functionality
+	local minimizeButton = Instance.new("TextButton")
+	minimizeButton.Parent = TopWindow
+	minimizeButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	minimizeButton.BorderSizePixel = 0
+	minimizeButton.Position = UDim2.new(0.81, 0, 0, 0)
+	minimizeButton.Size = UDim2.new(0, 34, 0, 34)
+	minimizeButton.Font = Enum.Font.GothamBold
+	minimizeButton.Text = "—"
+	minimizeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	minimizeButton.TextSize = 14
+
+	-- Add a UICorner to the minimize button
+	local minimizeButtonCorner = Instance.new("UICorner")
+	minimizeButtonCorner.Parent = minimizeButton
+	minimizeButtonCorner.CornerRadius = UDim.new(0, 8) -- Matches other corner radii
+
+	minimizeButton.MouseButton1Click:Connect(function()
+		-- Slide the window upward smoothly
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+			Position = UDim2.new(ResonixWindow.Position.X.Scale, ResonixWindow.Position.X.Offset, -0.5, 0)
+		})
+		tween:Play()
+		tween.Completed:Wait()
+		ResonixWindow.Visible = false
+		minimizeIcon.Visible = true
+	end)
+
+	-- Minimize icon functionality
+	minimizeIcon.MouseButton1Click:Connect(function()
+		ResonixWindow.Visible = true
+		-- Slide the window back down into view smoothly
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+			Position = UDim2.new(0.336, 0, 0.326, 0)
+		})
+		tween:Play()
+		minimizeIcon.Visible = false
+	end)
+
+	-- Close button functionality
+	local closeButton = Instance.new("TextButton")
+	closeButton.Parent = TopWindow
+	closeButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	closeButton.BorderSizePixel = 0
+	closeButton.Position = UDim2.new(0.90, 0, 0, 0)
+	closeButton.Size = UDim2.new(0, 34, 0, 34)
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.Text = "X"
+	closeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	closeButton.TextSize = 14
+
+	local closeButtonCorner = Instance.new("UICorner")
+	closeButtonCorner.Parent = closeButton
+	closeButtonCorner.CornerRadius = UDim.new(0, 8)
+
+	closeButton.MouseButton1Click:Connect(function()
+		-- Animation settings
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+		-- Animate the window moving downward and fading out
+		local windowTween = game:GetService("TweenService"):Create(ResonixWindow, tweenInfo, {
+			Position = UDim2.new(ResonixWindow.Position.X.Scale, ResonixWindow.Position.X.Offset, 1.5, 0),
+			BackgroundTransparency = 1
+		})
+		windowTween:Play()
+
+		-- Wait for the animation to complete
+		windowTween.Completed:Wait()
+
+		-- Destroy the ScreenGui after the animation
+		screenGui:Destroy()
+	end)
+
+	-- Store references to the window and frames
+	self.ResonixWindow = ResonixWindow
+	self.ScrollingFrame = ScrollingFrame
+	self.AllFrame = AllFrame
+end
+
+function Library:CreateTab(tabName)
+	-- Create the tab button
+	local tabButton = Instance.new("TextButton")
+	tabButton.Parent = self.ScrollingFrame
+	tabButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	tabButton.BorderSizePixel = 2
+	tabButton.BorderColor3 = Color3.fromRGB(94, 0, 2)
+	tabButton.Size = UDim2.new(0, 104, 0, 23)
+	tabButton.Font = Enum.Font.GothamBold
+	tabButton.Text = tabName
+	tabButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	tabButton.TextSize = 14
+	tabButton.AutoButtonColor = false -- Disable default button behavior
+
+	-- Add a UICorner to the tab button
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = tabButton
+
+	-- Create the tab container
+	local tabContainer = Instance.new("ScrollingFrame")
+	tabContainer.Name = tabName .. "Container"
+	tabContainer.Parent = self.AllFrame
+	tabContainer.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	tabContainer.BorderSizePixel = 0
+	tabContainer.Position = UDim2.new(0.05, 0, 0.05, 0)
+	tabContainer.Size = UDim2.new(0.9, 0, 0.94, 0)
+	tabContainer.Visible = false
+	tabContainer.ScrollBarThickness = 2 -- Set the scrollbar thickness
+	tabContainer.CanvasSize = UDim2.new(0, 0, 0, 0) -- Initialize canvas size
+
+	-- Add a UIListLayout to the ScrollingFrame
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = tabContainer
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 5)
+
+	-- Update the ScrollingFrame's canvas size dynamically
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		tabContainer.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+	end)
+
+	-- Touch handling variables
+	local touchStartTime = 0
+	local touchStartPos = nil
+	local isTouchActive = false
+	local maxTapDuration = 0.3 -- Maximum time for a tap (seconds)
+	local maxTapMovement = 10 -- Maximum movement allowed for a tap (pixels)
+
+	-- Button press visual effect
+	local function setPressedState(pressed)
+		game:GetService("TweenService"):Create(
+			tabButton,
+			TweenInfo.new(0.1),
+			{
+				BackgroundColor3 = pressed and Color3.fromRGB(50, 0, 0) or Color3.fromRGB(25, 0, 0)
+			}
+		):Play()
+	end
+
+	-- Function to switch to this tab
+	local function switchToTab()
+		-- Hide all other tab containers
+		for _, child in pairs(self.AllFrame:GetChildren()) do
+			if child:IsA("ScrollingFrame") then
+				child.Visible = false
+			end
+		end
+		-- Show the selected tab container
+		tabContainer.Visible = true
+	end
+
+	-- Handle input for both mobile and desktop
+	tabButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			-- Mobile touch handling
+			touchStartTime = tick()
+			touchStartPos = input.Position
+			isTouchActive = true
+			setPressedState(true)
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			-- Desktop mouse handling
+			setPressedState(true)
+		end
+	end)
+
+	tabButton.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			-- Mobile touch release
+			if isTouchActive then
+				local touchDuration = tick() - touchStartTime
+				local endPos = input.Position
+				local movement = touchStartPos and (endPos - touchStartPos).magnitude or 0
+
+				-- Only switch tabs if it was a quick tap with minimal movement
+				if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+					switchToTab()
+				end
+
+				setPressedState(false)
+				isTouchActive = false
+			end
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			-- Desktop mouse release
+			setPressedState(false)
+			switchToTab()
+		end
+	end)
+
+	-- Handle touch cancellation (like when scrolling starts)
+	tabButton.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and isTouchActive then
+			local currentPos = input.Position
+			local movement = touchStartPos and (currentPos - touchStartPos).magnitude or 0
+
+			-- If movement exceeds threshold, cancel the touch
+			if movement > maxTapMovement then
+				setPressedState(false)
+				isTouchActive = false
+			end
+		end
+	end)
+
+	-- Update the scrolling frame's canvas size
+	self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.ScrollingFrame.UIListLayout.AbsoluteContentSize.Y)
+
+	return tabContainer -- Return the ScrollingFrame
+end
+
+function Library:CreateButton(tabContainer, buttonName, callback, description)
+	-- Create the button
+	local button = Instance.new("TextButton")
+	button.Parent = tabContainer
+	button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	button.BorderSizePixel = 0
+	button.Size = UDim2.new(1, 0, 0, 28)
+	button.Text = ""
+	button.AutoButtonColor = false
+
+	-- Add UICorner
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = button
+
+	-- Create button text
+	local buttonText = Instance.new("TextLabel")
+	buttonText.Parent = button
+	buttonText.BackgroundTransparency = 1
+	buttonText.Size = UDim2.new(1, -10, 1, -10)
+	buttonText.Position = UDim2.new(0, 5, 0, 5)
+	buttonText.Font = Enum.Font.GothamBold
+	buttonText.Text = buttonName
+	buttonText.TextColor3 = Color3.fromRGB(255, 0, 4)
+	buttonText.TextSize = 14
+	buttonText.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Touch handling variables
+	local touchStartTime = 0
+	local touchStartPos = nil
+	local isTouchActive = false
+	local maxTapDuration = 0.3
+	local maxTapMovement = 10
+	local isScrolling = false
+	local isProcessing = false
+
+	-- Button press visual effect
+	local function setPressedState(pressed)
+		if isProcessing then
+			pressed = false -- Force released state if processing
+		end
+		game:GetService("TweenService"):Create(
+			button,
+			TweenInfo.new(0.1),
+			{
+				BackgroundColor3 = pressed and Color3.fromRGB(50, 0, 0) or Color3.fromRGB(25, 0, 0)
+			}
+		):Play()
+	end
+
+	-- Function to handle button press and release
+	local function handleButtonAction()
+		if isProcessing then return end -- Don't allow multiple clicks while processing
+
+		isProcessing = true
+		setPressedState(false) -- Immediately release the button
+
+		-- Run the callback in a protected call
+		local success, err = pcall(callback)
+		if not success then
+			warn("Button callback error:", err)
+		end
+
+		isProcessing = false
+	end
+
+	-- Input handling
+	button.InputBegan:Connect(function(input)
+		if isProcessing then return end
+
+		if input.UserInputType == Enum.UserInputType.Touch then
+			touchStartTime = tick()
+			touchStartPos = input.Position
+			isTouchActive = true
+			isScrolling = false
+			setPressedState(true)
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			setPressedState(true)
+		end
+	end)
+
+	button.InputChanged:Connect(function(input)
+		if isTouchActive and input.UserInputType == Enum.UserInputType.Touch then
+			local currentPos = input.Position
+			local movement = (currentPos - touchStartPos).magnitude
+
+			if movement > maxTapMovement then
+				isScrolling = true
+				setPressedState(false)
+			end
+		end
+	end)
+
+	button.InputEnded:Connect(function(input)
+		if isProcessing then return end
+
+		if input.UserInputType == Enum.UserInputType.Touch and isTouchActive then
+			local touchDuration = tick() - touchStartTime
+			local endPos = input.Position
+			local movement = (endPos - touchStartPos).magnitude
+
+			if not isScrolling and touchDuration <= maxTapDuration and movement <= maxTapMovement then
+				handleButtonAction()
+			end
+
+			setPressedState(false)
+			isTouchActive = false
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			handleButtonAction()
+			setPressedState(false)
+		end
+	end)
+
+	-- Ensure button is released if touch is lost (e.g., finger leaves screen)
+	UserInputService.TouchEnded:Connect(function(input, processed)
+		if not processed and isTouchActive then
+			setPressedState(false)
+			isTouchActive = false
+		end
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15)
+		descLabel.Position = UDim2.new(0, 5, 0, 30)
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+end
+
+function Library:CreateInput(tabContainer, placeholderText, callback, description)
+	-- Create the input frame
+	local inputFrame = Instance.new("Frame")
+	inputFrame.Parent = tabContainer
+	inputFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	inputFrame.BorderSizePixel = 0
+	inputFrame.Size = UDim2.new(1, 0, 0, 28)
+
+	-- Add a UICorner to the input frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = inputFrame
+
+	-- Create the text box
+	local textBox = Instance.new("TextBox")
+	textBox.Parent = inputFrame
+	textBox.BackgroundTransparency = 1
+	textBox.Size = UDim2.new(1, -10, 1, -10)
+	textBox.Position = UDim2.new(0, 5, 0, 5)
+	textBox.Font = Enum.Font.GothamBold
+	textBox.Text = ""
+	textBox.TextColor3 = Color3.fromRGB(255, 0, 4)
+	textBox.TextSize = 14
+	textBox.PlaceholderText = placeholderText
+	textBox.PlaceholderColor3 = Color3.fromRGB(150, 0, 0)
+	textBox.ClearTextOnFocus = true
+	textBox.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Connect the text box's focus lost event to the callback
+	textBox.FocusLost:Connect(function()
+		callback(textBox.Text)
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15) -- Adjust height as needed
+		descLabel.Position = UDim2.new(0, 5, 0, 30) -- Position below the input
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+end
+
+function Library:CreateToggle(tabContainer, toggleName, defaultState, callback, description)
+	-- Create the toggle frame
+	local toggleFrame = Instance.new("Frame")
+	toggleFrame.Parent = tabContainer
+	toggleFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	toggleFrame.BorderSizePixel = 0
+	toggleFrame.Size = UDim2.new(1, 0, 0, 28)
+
+	-- Add a UICorner to the toggle frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = toggleFrame
+
+	-- Create the toggle label
+	local toggleLabel = Instance.new("TextLabel")
+	toggleLabel.Parent = toggleFrame
+	toggleLabel.BackgroundTransparency = 1
+	toggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+	toggleLabel.Position = UDim2.new(0, 5, 0, 0)
+	toggleLabel.Font = Enum.Font.GothamBold
+	toggleLabel.Text = toggleName
+	toggleLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	toggleLabel.TextSize = 14
+	toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Create the switch track
+	local switchTrack = Instance.new("Frame")
+	switchTrack.Parent = toggleFrame
+	switchTrack.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+	switchTrack.BorderSizePixel = 0
+	switchTrack.Size = UDim2.new(0, 40, 0, 16)
+	switchTrack.Position = UDim2.new(0.9, -15, 0.8, -9)
+	switchTrack.AnchorPoint = Vector2.new(0.5, 0.5)
+
+	-- Add a UICorner to the switch track
+	local switchTrackCorner = Instance.new("UICorner")
+	switchTrackCorner.Parent = switchTrack
+	switchTrackCorner.CornerRadius = UDim.new(1, 0)
+
+	-- Create the switch button
+	local switchButton = Instance.new("Frame")
+	switchButton.Parent = switchTrack
+	switchButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	switchButton.BorderSizePixel = 0
+	switchButton.Size = UDim2.new(0, 14, 0, 14)
+	switchButton.Position = UDim2.new(0, 1, 0.5, -7)
+	switchButton.AnchorPoint = Vector2.new(0, -4)
+
+	-- Add a UICorner to the switch button
+	local switchButtonCorner = Instance.new("UICorner")
+	switchButtonCorner.Parent = switchButton
+	switchButtonCorner.CornerRadius = UDim.new(1, 0)
+
+	-- Set the initial state of the toggle
+	local isToggled = defaultState or false
+
+	-- Function to update the toggle state with animation
+	local function updateToggleState()
+		local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tween = game:GetService("TweenService"):Create(
+			switchButton,
+			tweenInfo,
+			{
+				Position = isToggled and UDim2.new(1, -15, 0.5, -7) or UDim2.new(0, 1, 0.5, -7)
+			}
+		)
+		tween:Play()
+
+		local colorTween = game:GetService("TweenService"):Create(
+			switchTrack,
+			tweenInfo,
+			{
+				BackgroundColor3 = isToggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(64, 64, 64)
+			}
+		)
+		colorTween:Play()
+	end
+
+	-- Set the initial state
+	updateToggleState()
+
+	-- Mobile-specific touch handling
+	local touchStartPosition = nil
+	local touchStartTime = 0
+	local maxTapDuration = 0.3 -- Maximum time for a tap (seconds)
+	local maxTapMovement = 10 -- Maximum movement allowed for a tap (pixels)
+
+	-- Handle both mobile and PC input
+	toggleFrame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			-- Mobile touch handling
+			touchStartPosition = input.Position
+			touchStartTime = tick()
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			-- PC mouse click handling - toggle immediately
+			isToggled = not isToggled
+			updateToggleState()
+			callback(isToggled)
+		end
+	end)
+
+	toggleFrame.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and touchStartPosition then
+			local touchEndPosition = input.Position
+			local touchDuration = tick() - touchStartTime
+			local movement = (touchEndPosition - touchStartPosition).magnitude
+
+			-- Only register as a tap if it was quick and didn't move much
+			if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+				isToggled = not isToggled
+				updateToggleState()
+				callback(isToggled)
+			end
+
+			touchStartPosition = nil
+		end
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15)
+		descLabel.Position = UDim2.new(0, 5, 0, 30)
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+end
+
+function Library:CreateSlider(tabContainer, sliderName, minValue, maxValue, defaultValue, callback, description)
+	-- Create the slider frame
+	local sliderFrame = Instance.new("Frame")
+	sliderFrame.Parent = tabContainer
+	sliderFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	sliderFrame.BorderSizePixel = 0
+	sliderFrame.Size = UDim2.new(1, 0, 0, 40)
+	sliderFrame.Name = "SliderFrame"
+
+	-- Add a UICorner to the slider frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = sliderFrame
+
+	-- Create the slider label
+	local sliderLabel = Instance.new("TextLabel")
+	sliderLabel.Parent = sliderFrame
+	sliderLabel.BackgroundTransparency = 1
+	sliderLabel.Size = UDim2.new(0.3, 0, 0.5, 0)
+	sliderLabel.Position = UDim2.new(0, 5, 0, 0)
+	sliderLabel.Font = Enum.Font.GothamBold
+	sliderLabel.Text = sliderName
+	sliderLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	sliderLabel.TextSize = 14
+	sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Create the slider track (now just visual, not interactive)
+	local sliderTrack = Instance.new("Frame")
+	sliderTrack.Parent = sliderFrame
+	sliderTrack.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+	sliderTrack.BorderSizePixel = 0
+	sliderTrack.Size = UDim2.new(1, -10, 0, 6)
+	sliderTrack.Position = UDim2.new(0.02, 0, 0.7, 0)
+	sliderTrack.AnchorPoint = Vector2.new(0, 0.5)
+	sliderTrack.Name = "SliderTrack"
+
+	-- Add a UICorner to the slider track
+	local sliderTrackCorner = Instance.new("UICorner")
+	sliderTrackCorner.Parent = sliderTrack
+	sliderTrackCorner.CornerRadius = UDim.new(1, 0)
+
+	-- Create the fill frame
+	local fillFrame = Instance.new("Frame")
+	fillFrame.Parent = sliderTrack
+	fillFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+	fillFrame.BorderSizePixel = 0
+	fillFrame.Size = UDim2.new(0, 0, 1, 0)
+	fillFrame.AnchorPoint = Vector2.new(0, 0)
+
+	-- Add a UICorner to the fill frame
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.Parent = fillFrame
+	fillCorner.CornerRadius = UDim.new(1, 0)
+
+	-- Create the value label
+	local valueLabel = Instance.new("TextLabel")
+	valueLabel.Parent = sliderFrame
+	valueLabel.BackgroundTransparency = 1
+	valueLabel.Size = UDim2.new(0.1, 0, 0.5, 0)
+	valueLabel.Position = UDim2.new(0.85, 0, 0, 0)
+	valueLabel.Font = Enum.Font.GothamBold
+	valueLabel.Text = tostring(defaultValue)
+	valueLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	valueLabel.TextSize = 14
+	valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+	-- Initialize the slider value
+	local value = math.clamp(defaultValue or minValue, minValue, maxValue)
+	local function updateSlider()
+		local percent = (value - minValue) / (maxValue - minValue)
+		fillFrame.Size = UDim2.new(percent, 0, 1, 0)
+		valueLabel.Text = tostring(math.floor(value))
+	end
+
+	-- Set the initial value
+	updateSlider()
+
+	-- Touch handling variables
+	local isDragging = false
+	local touchStartPosition = nil
+	local touchStartTime = 0
+	local originalScrollBarThickness = tabContainer.ScrollBarThickness
+
+	-- Make the entire slider frame interactive
+	sliderFrame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or 
+			input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+			-- Store initial touch information
+			touchStartPosition = input.Position
+			touchStartTime = tick()
+
+			-- Disable container scrolling while adjusting slider
+			tabContainer.ScrollingEnabled = false
+			tabContainer.ScrollBarThickness = 0
+
+			-- Calculate initial value based on touch position
+			local mousePosition = input.Position.X
+			local trackPosition = sliderTrack.AbsolutePosition.X
+			local trackSize = sliderTrack.AbsoluteSize.X
+			local percent = math.clamp((mousePosition - trackPosition) / trackSize, 0, 1)
+			value = minValue + (maxValue - minValue) * percent
+			updateSlider()
+			callback(value)
+
+			isDragging = true
+		end
+	end)
+
+	sliderFrame.InputEnded:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.Touch or 
+			input.UserInputType == Enum.UserInputType.MouseButton1) and isDragging then
+
+			-- Re-enable container scrolling
+			tabContainer.ScrollingEnabled = true
+			tabContainer.ScrollBarThickness = originalScrollBarThickness
+
+			isDragging = false
+			touchStartPosition = nil
+		end
+	end)
+
+	game:GetService("UserInputService").InputChanged:Connect(function(input)
+		if isDragging and (input.UserInputType == Enum.UserInputType.Touch or 
+			input.UserInputType == Enum.UserInputType.MouseMovement) then
+
+			-- Update slider value based on current position
+			local mousePosition = input.Position.X
+			local trackPosition = sliderTrack.AbsolutePosition.X
+			local trackSize = sliderTrack.AbsoluteSize.X
+			local percent = math.clamp((mousePosition - trackPosition) / trackSize, 0, 1)
+			value = minValue + (maxValue - minValue) * percent
+			updateSlider()
+			callback(value)
+		end
+	end)
+
+	-- Hover effects (mouse only)
+	sliderFrame.MouseEnter:Connect(function()
+		game:GetService("TweenService"):Create(sliderFrame, TweenInfo.new(0.2), { Transparency = 0 }):Play()
+	end)
+
+	sliderFrame.MouseLeave:Connect(function()
+		game:GetService("TweenService"):Create(sliderFrame, TweenInfo.new(0.2), { Transparency = 0.4 }):Play()
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15)
+		descLabel.Position = UDim2.new(0, 5, 0, 45)
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+
+	return sliderFrame
+end
+
+function Library:CreateLabel(tabContainer, labelText)
+	-- Create the label frame
+	local labelFrame = Instance.new("Frame")
+	labelFrame.Parent = tabContainer
+	labelFrame.BackgroundTransparency = 1 -- Make the background transparent
+	labelFrame.Size = UDim2.new(1, 0, 0, 20) -- Adjust height as needed
+
+	-- Create the text label with gray color (matches the description text)
+	local label = Instance.new("TextLabel")
+	label.Parent = labelFrame
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.Position = UDim2.new(0, 5, 0, 0) -- Add slight padding
+	label.Font = Enum.Font.GothamBold
+	label.Text = labelText
+	label.TextColor3 = Color3.fromRGB(143, 0, 0) -- Gray color matching descriptions
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left -- Align text to the left
+end
+
+function Library:CreateImageButton(tabContainer, buttonName, imageId, viewButtonText, callback, description)
+	-- Create the main button
+	local button = Instance.new("TextButton")
+	button.Parent = tabContainer
+	button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	button.BorderSizePixel = 0
+	button.Size = UDim2.new(1, 0, 0, 28)
+	button.Text = ""
+	button.AutoButtonColor = false
+
+	-- Add UICorner
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = button
+
+	-- Create button text
+	local buttonText = Instance.new("TextLabel")
+	buttonText.Parent = button
+	buttonText.BackgroundTransparency = 1
+	buttonText.Size = UDim2.new(0.7, -10, 1, -10)
+	buttonText.Position = UDim2.new(0, 5, 0, 5)
+	buttonText.Font = Enum.Font.GothamBold
+	buttonText.Text = buttonName
+	buttonText.TextColor3 = Color3.fromRGB(255, 0, 4)
+	buttonText.TextSize = 14
+	buttonText.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Create the view button
+	local viewButton = Instance.new("TextButton")
+	viewButton.Parent = button
+	viewButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	viewButton.BorderSizePixel = 2
+	viewButton.BorderColor3 = Color3.fromRGB(94, 0, 2)
+	viewButton.Position = UDim2.new(0.85, -30, 0.15, 0)
+	viewButton.Size = UDim2.new(0, 60, 0.7, 0)
+	viewButton.Font = Enum.Font.GothamBold
+	viewButton.Text = viewButtonText or "View"
+	viewButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	viewButton.TextSize = 12
+	viewButton.AutoButtonColor = false
+
+	-- Add corner to view button
+	local viewButtonCorner = Instance.new("UICorner")
+	viewButtonCorner.Parent = viewButton
+
+	-- Create the image viewer frame
+	local imageViewer = Instance.new("Frame")
+	imageViewer.Parent = self.ResonixWindow
+	imageViewer.BackgroundColor3 = Color3.fromRGB(36, 16, 16)
+	imageViewer.BorderSizePixel = 0
+	imageViewer.Position = UDim2.new(1, 10, 0, 0)
+	imageViewer.Size = UDim2.new(0, 200, 1, 0)
+	imageViewer.Visible = false
+	imageViewer.ZIndex = 10
+
+	-- Add corner to image viewer
+	local viewerCorner = Instance.new("UICorner")
+	viewerCorner.Parent = imageViewer
+	viewerCorner.CornerRadius = UDim.new(0, 8)
+
+	-- Create the image display
+	local displayImage = Instance.new("ImageLabel")
+	displayImage.Parent = imageViewer
+	displayImage.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+	displayImage.BorderSizePixel = 0
+	displayImage.Position = UDim2.new(0.05, 0, 0.05, 0)
+	displayImage.Size = UDim2.new(0.9, 0, 0.8, 0)
+	displayImage.Image = "rbxassetid://"..tostring(imageId)
+	displayImage.ScaleType = Enum.ScaleType.Fit
+	displayImage.ZIndex = 11
+
+	-- Add corner to display image
+	local imageCorner = Instance.new("UICorner")
+	imageCorner.Parent = displayImage
+
+	-- Create the close button
+	local closeButton = Instance.new("TextButton")
+	closeButton.Parent = imageViewer
+	closeButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	closeButton.BorderSizePixel = 2
+	closeButton.BorderColor3 = Color3.fromRGB(94, 0, 2)
+	closeButton.Position = UDim2.new(0.35, 0, 0.88, 0)
+	closeButton.Size = UDim2.new(0.3, 0, 0.1, 0)
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.Text = "Close"
+	closeButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+	closeButton.TextSize = 14
+	closeButton.ZIndex = 11
+	closeButton.AutoButtonColor = false
+
+	-- Add corner to close button
+	local closeButtonCorner = Instance.new("UICorner")
+	closeButtonCorner.Parent = closeButton
+
+	-- Button press visual effects
+	local function setPressedState(btn, pressed)
+		game:GetService("TweenService"):Create(
+			btn,
+			TweenInfo.new(0.1),
+			{
+				BackgroundColor3 = pressed and Color3.fromRGB(50, 0, 0) or Color3.fromRGB(25, 0, 0)
+			}
+		):Play()
+	end
+
+	-- Toggle image viewer visibility
+	local function toggleImageViewer()
+		imageViewer.Visible = not imageViewer.Visible
+	end
+
+	-- Touch handling variables
+	local touchStartTime = 0
+	local touchStartPos = nil
+	local isScrolling = false
+	local maxTapDuration = 0.3
+	local maxTapMovement = 10
+
+	-- Handle button press
+	local function handleButtonPress(btn, action)
+		btn.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				touchStartTime = tick()
+				touchStartPos = input.Position
+				isScrolling = false
+				setPressedState(btn, true)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				setPressedState(btn, true)
+			end
+		end)
+
+		btn.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				local touchDuration = tick() - touchStartTime
+				local endPos = input.Position
+				local movement = touchStartPos and (endPos - touchStartPos).magnitude or 0
+
+				if not isScrolling and touchDuration <= maxTapDuration and movement <= maxTapMovement then
+					action()
+				end
+				setPressedState(btn, false)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				action()
+				setPressedState(btn, false)
+			end
+		end)
+	end
+
+	-- Track scrolling
+	button.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
+			local currentPos = input.Position
+			local movement = (currentPos - touchStartPos).magnitude
+			if movement > maxTapMovement then
+				isScrolling = true
+				setPressedState(button, false)
+				setPressedState(viewButton, false)
+			end
+		end
+	end)
+
+	-- Set up button actions
+	handleButtonPress(viewButton, toggleImageViewer)
+	handleButtonPress(button, function()
+		if callback then callback() end
+	end)
+	handleButtonPress(closeButton, toggleImageViewer)
+
+	-- Add description if provided (with text wrapping)
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, -10, 0, 0) -- Auto-size height
+		descLabel.Position = UDim2.new(0, 5, 0, 30)
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+		descLabel.TextWrapped = true
+		descLabel.AutomaticSize = Enum.AutomaticSize.Y
+
+		-- Force update of UIListLayout
+		local layout = tabContainer:FindFirstChildOfClass("UIListLayout")
+		if layout then
+			layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+				tabContainer.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+			end)
+			tabContainer.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+		end
+	end
+end
+
+function Library:CreateOneTimeButton(tabContainer, buttonName, callback, description)
+	-- Create the button
+	local button = Instance.new("TextButton")
+	button.Parent = tabContainer
+	button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	button.BorderSizePixel = 0
+	button.Size = UDim2.new(1, 0, 0, 28)
+	button.Text = ""
+	button.AutoButtonColor = false
+
+	-- Add UICorner
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = button
+
+	-- Create button text
+	local buttonText = Instance.new("TextLabel")
+	buttonText.Parent = button
+	buttonText.BackgroundTransparency = 1
+	buttonText.Size = UDim2.new(1, -10, 1, -10)
+	buttonText.Position = UDim2.new(0, 5, 0, 5)
+	buttonText.Font = Enum.Font.GothamBold
+	buttonText.Text = buttonName
+	buttonText.TextColor3 = Color3.fromRGB(255, 0, 4)
+	buttonText.TextSize = 14
+	buttonText.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Track if button has been clicked
+	local hasBeenClicked = false
+
+	-- Touch handling variables
+	local touchStartTime = 0
+	local touchStartPos = nil
+	local isTouchActive = false
+	local maxTapDuration = 0.3
+	local maxTapMovement = 10
+	local isScrolling = false
+
+	-- Button press visual effect
+	local function setPressedState(pressed)
+		if hasBeenClicked then return end -- Don't show pressed state if already clicked
+		game:GetService("TweenService"):Create(
+			button,
+			TweenInfo.new(0.1),
+			{
+				BackgroundColor3 = pressed and Color3.fromRGB(50, 0, 0) or Color3.fromRGB(25, 0, 0)
+			}
+		):Play()
+	end
+
+	-- Function to handle button action
+	local function handleButtonAction()
+		if hasBeenClicked then return end -- Don't allow multiple clicks
+
+		hasBeenClicked = true
+
+		-- Change button appearance to show it's been clicked
+		buttonText.Text = buttonName .. " (Active)"
+		game:GetService("TweenService"):Create(
+			button,
+			TweenInfo.new(0.2),
+			{
+				BackgroundColor3 = Color3.fromRGB(15, 0, 0)
+			}
+		):Play()
+
+		-- Disable the button
+		button.Active = false
+
+		-- Run the callback in a protected call
+		local success, err = pcall(callback)
+		if not success then
+			warn("OneTimeButton callback error:", err)
+		end
+	end
+
+	-- Input handling
+	button.InputBegan:Connect(function(input)
+		if hasBeenClicked then return end
+
+		if input.UserInputType == Enum.UserInputType.Touch then
+			touchStartTime = tick()
+			touchStartPos = input.Position
+			isTouchActive = true
+			isScrolling = false
+			setPressedState(true)
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			setPressedState(true)
+		end
+	end)
+
+	button.InputChanged:Connect(function(input)
+		if isTouchActive and input.UserInputType == Enum.UserInputType.Touch then
+			local currentPos = input.Position
+			local movement = touchStartPos and (currentPos - touchStartPos).magnitude or 0
+
+			if movement > maxTapMovement then
+				isScrolling = true
+				setPressedState(false)
+			end
+		end
+	end)
+
+	button.InputEnded:Connect(function(input)
+		if hasBeenClicked then return end
+
+		if input.UserInputType == Enum.UserInputType.Touch and isTouchActive then
+			local touchDuration = tick() - touchStartTime
+			local endPos = input.Position
+			local movement = touchStartPos and (endPos - touchStartPos).magnitude or 0
+
+			if not isScrolling and touchDuration <= maxTapDuration and movement <= maxTapMovement then
+				handleButtonAction()
+			end
+
+			setPressedState(false)
+			isTouchActive = false
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			handleButtonAction()
+			setPressedState(false)
+		end
+	end)
+
+	-- Ensure button is released if touch is lost
+	UserInputService.TouchEnded:Connect(function(input, processed)
+		if not processed and isTouchActive then
+			setPressedState(false)
+			isTouchActive = false
+		end
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15)
+		descLabel.Position = UDim2.new(0, 5, 0, 30)
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+
+	-- Return the button and a function to reset it if needed
+	return {
+		Reset = function()
+			hasBeenClicked = false
+			buttonText.Text = buttonName
+			button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+			button.Active = true
+		end
+	}
+end
+
+function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOption, callback, description)
+	-- Set default option if not provided
+	defaultOption = defaultOption or options[1]
+
+	-- Store the base description separately
+	local baseDescription = description or ""
+
+	-- Create the dropdown frame
+	local dropdownFrame = Instance.new("Frame")
+	dropdownFrame.Parent = tabContainer
+	dropdownFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	dropdownFrame.BorderSizePixel = 0
+	dropdownFrame.Size = UDim2.new(1, 0, 0, 28)
+	dropdownFrame.ClipsDescendants = false
+	dropdownFrame.Name = "DropdownFrame"
+
+	-- Add a UICorner to the dropdown frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = dropdownFrame
+
+	-- Create the main dropdown button
+	local dropdownButton = Instance.new("TextButton")
+	dropdownButton.Parent = dropdownFrame
+	dropdownButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	dropdownButton.BorderSizePixel = 0
+	dropdownButton.Size = UDim2.new(1, 0, 0, 28)
+	dropdownButton.Text = ""
+	dropdownButton.AutoButtonColor = false
+	dropdownButton.ZIndex = 2
+
+	-- Add a UICorner to the dropdown button
+	local buttonCorner = Instance.new("UICorner")
+	buttonCorner.Parent = dropdownButton
+
+	-- Create dropdown label
+	local dropdownLabel = Instance.new("TextLabel")
+	dropdownLabel.Parent = dropdownButton
+	dropdownLabel.BackgroundTransparency = 1
+	dropdownLabel.Size = UDim2.new(0.7, -10, 1, -10)
+	dropdownLabel.Position = UDim2.new(0, 5, 0, 5)
+	dropdownLabel.Font = Enum.Font.GothamBold
+	dropdownLabel.Text = dropdownName
+	dropdownLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	dropdownLabel.TextSize = 14
+	dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dropdownLabel.ZIndex = 3
+
+	-- Create the dropdown arrow
+	local dropdownArrow = Instance.new("ImageLabel")
+	dropdownArrow.Parent = dropdownButton
+	dropdownArrow.BackgroundTransparency = 1
+	dropdownArrow.Size = UDim2.new(0, 16, 0, 16)
+	dropdownArrow.Position = UDim2.new(0.95, -18, 0.5, -8)
+	dropdownArrow.Image = "rbxassetid://3926305904"
+	dropdownArrow.ImageRectOffset = Vector2.new(564, 284)
+	dropdownArrow.ImageRectSize = Vector2.new(36, 36)
+	dropdownArrow.ZIndex = 3
+
+	-- Create the options frame (hidden by default) - parented to main window
+	local optionsFrame = Instance.new("Frame")
+	optionsFrame.Parent = self.ResonixWindow
+	optionsFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	optionsFrame.BorderSizePixel = 0
+	optionsFrame.Size = UDim2.new(0, 230, 0, 0) -- Same size as image viewer
+	optionsFrame.Position = UDim2.new(1, 10, 0, 0) -- Same position as image viewer
+	optionsFrame.Visible = false
+	optionsFrame.ZIndex = 10
+	optionsFrame.Name = "DropdownOptionsFrame"
+
+	-- Add a UICorner to the options frame
+	local optionsCorner = Instance.new("UICorner")
+	optionsCorner.Parent = optionsFrame
+	optionsCorner.CornerRadius = UDim.new(0, 8)
+
+	-- Create a scrolling frame for options
+	local optionsScroller = Instance.new("ScrollingFrame")
+	optionsScroller.Parent = optionsFrame
+	optionsScroller.BackgroundTransparency = 1
+	optionsScroller.Size = UDim2.new(1, 0, 1, 0)
+	optionsScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
+	optionsScroller.ScrollBarThickness = 2
+	optionsScroller.ZIndex = 10
+
+	-- Create a UIListLayout for the options
+	local optionsLayout = Instance.new("UIListLayout")
+	optionsLayout.Parent = optionsScroller
+	optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	optionsLayout.Padding = UDim.new(0, 2)
+
+	-- Update canvas size when layout changes
+	optionsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
+	end)
+
+	-- Track if dropdown is open
+	local isOpen = false
+	local selectedOption = defaultOption
+	local tweenService = game:GetService("TweenService")
+
+	-- Create description label
+	local descLabel = Instance.new("TextLabel")
+	descLabel.Parent = tabContainer
+	descLabel.BackgroundTransparency = 1
+	descLabel.Size = UDim2.new(1, 0, 0, 15)
+	descLabel.Position = UDim2.new(0, 5, 0, dropdownFrame.Position.Y.Offset + dropdownFrame.Size.Y.Offset + 2)
+	descLabel.Font = Enum.Font.Gotham
+	descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
+	descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+	descLabel.TextSize = 12
+	descLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Function to update both the dropdown label and description
+	local function updateSelection(option)
+		selectedOption = option
+		dropdownLabel.Text = dropdownName
+		descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. option .. ")"
+		if callback then callback(option) end
+	end
+
+	-- Define the function to toggle the dropdown
+	local function toggleDropdown()
+		isOpen = not isOpen
+
+		-- Rotate the arrow
+		local arrowTween = tweenService:Create(
+			dropdownArrow,
+			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Rotation = isOpen and 180 or 0
+			}
+		)
+		arrowTween:Play()
+
+		if isOpen then
+			-- Show the options frame
+			optionsFrame.Visible = true
+
+			-- Calculate the required height based on number of options (max height is library height minus some padding)
+			local maxHeight = self.ResonixWindow.Size.Y.Offset - 0  -- Subtract some padding
+			local targetHeight = math.min(#options * 28, maxHeight)
+
+			-- Animate the options frame to match image viewer behavior
+			local optionsTween = tweenService:Create(
+				optionsFrame,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					Size = UDim2.new(0, 230, 0, targetHeight)
+				}
+			)
+			optionsTween:Play()
+		else
+			-- Animate the options frame closed
+			local optionsTween = tweenService:Create(
+				optionsFrame,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					Size = UDim2.new(0, 230, 0, 0)
+				}
+			)
+			optionsTween:Play()
+
+			-- Hide the options frame after animation
+			optionsTween.Completed:Connect(function()
+				if not isOpen then
+					optionsFrame.Visible = false
+				end
+			end)
+		end
+	end
+
+	-- [Rest of the function remains the same...]
+	-- Handle selection of an option
+	local function selectOption(option)
+		updateSelection(option)
+		if isOpen then
+			toggleDropdown()
+		end
+	end
+
+	-- Track touch input state
+	local touchStartPos = nil
+	local touchStartTime = 0
+	local isDragging = false
+	local maxTapDuration = 0.3
+	local maxTapMovement = 10
+
+	-- Mobile and desktop input handling for dropdown button
+	dropdownButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			touchStartPos = input.Position
+			touchStartTime = tick()
+			isDragging = false
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			toggleDropdown()
+		end
+	end)
+
+	dropdownButton.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
+			local currentPos = input.Position
+			local movement = (currentPos - touchStartPos).magnitude
+
+			if movement > maxTapMovement then
+				isDragging = true
+			end
+		end
+	end)
+
+	dropdownButton.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
+			local touchDuration = tick() - touchStartTime
+			local endPos = input.Position
+			local movement = (endPos - touchStartPos).magnitude
+
+			if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+				toggleDropdown()
+			end
+		end
+	end)
+
+	-- Close dropdown when clicking outside
+	local function onInputBegan(input)
+		if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
+			local mousePos = input.Position
+			local isInDropdown = dropdownFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+			local isInOptions = optionsFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+
+			if not isInDropdown and not isInOptions then
+				toggleDropdown()
+			end
+		end
+	end
+
+	-- Connect the input handler
+	game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
+
+	-- Create option buttons
+	for _, option in ipairs(options) do
+		local optionButton = Instance.new("TextButton")
+		optionButton.Parent = optionsScroller
+		optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+		optionButton.BorderSizePixel = 0
+		optionButton.Size = UDim2.new(1, -10, 0, 26)
+		optionButton.Position = UDim2.new(0, 5, 0, 0)
+		optionButton.Text = option
+		optionButton.Font = Enum.Font.GothamBold
+		optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+		optionButton.TextSize = 14
+		optionButton.AutoButtonColor = false
+		optionButton.ZIndex = 11 -- Higher zindex to appear above other elements
+
+		-- Add a UICorner to the option button
+		local optionCorner = Instance.new("UICorner")
+		optionCorner.Parent = optionButton
+
+		-- Button press visual effect
+		optionButton.MouseButton1Click:Connect(function()
+			selectOption(option)
+		end)
+
+		-- Touch handling for option buttons
+		local optionTouchStartPos = nil
+		local optionTouchStartTime = 0
+		local optionIsDragging = false
+
+		optionButton.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				optionTouchStartPos = input.Position
+				optionTouchStartTime = tick()
+				optionIsDragging = false
+				optionButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				optionButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+			end
+		end)
+
+		optionButton.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch and optionTouchStartPos then
+				local currentPos = input.Position
+				local movement = (currentPos - optionTouchStartPos).magnitude
+
+				if movement > maxTapMovement then
+					optionIsDragging = true
+				end
+			end
+		end)
+
+		optionButton.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch and optionTouchStartPos and not optionIsDragging then
+				local touchDuration = tick() - optionTouchStartTime
+				local endPos = input.Position
+				local movement = (endPos - optionTouchStartPos).magnitude
+
+				if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+					selectOption(option)
+				end
+				optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				selectOption(option)
+				optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+			end
+		end)
+	end
+
+	return {
+		SetOptions = function(newOptions)
+			-- Clear existing options
+			for _, child in ipairs(optionsScroller:GetChildren()) do
+				if child:IsA("TextButton") then
+					child:Destroy()
+				end
+			end
+
+			-- Add new options
+			for _, option in ipairs(newOptions) do
+				local optionButton = Instance.new("TextButton")
+				optionButton.Parent = optionsScroller
+				optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+				optionButton.BorderSizePixel = 0
+				optionButton.Size = UDim2.new(1, -10, 0, 26)
+				optionButton.Position = UDim2.new(0, 5, 0, 0)
+				optionButton.Text = option
+				optionButton.Font = Enum.Font.GothamBold
+				optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+				optionButton.TextSize = 14
+				optionButton.AutoButtonColor = false
+				optionButton.ZIndex = 11
+
+				local optionCorner = Instance.new("UICorner")
+				optionCorner.Parent = optionButton
+
+				optionButton.MouseButton1Click:Connect(function()
+					selectOption(option)
+				end)
+			end
+		end,
+
+		SetDescription = function(newDesc)
+			baseDescription = newDesc or ""
+			descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
+		end,
+
+		Destroy = function()
+			-- Clean up the options frame
+			if optionsFrame and optionsFrame.Parent then
+				optionsFrame:Destroy()
+			end
+
+			-- Clean up the dropdown frame
+			if dropdownFrame and dropdownFrame.Parent then
+				dropdownFrame:Destroy()
+			end
+
+			-- Clean up the description label
+			if descLabel and descLabel.Parent then
+				descLabel:Destroy()
+			end
+		end
+	}
+end
+
+function Library:Destroy()
+	-- Check if the window exists
+	if self.ResonixWindow and self.ResonixWindow.Parent then
+		-- Get the ScreenGui parent
+		local screenGui = self.ResonixWindow.Parent
+
+		-- Animation settings
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+		-- Animate the window moving downward and fading out
+		local windowTween = game:GetService("TweenService"):Create(self.ResonixWindow, tweenInfo, {
+			Position = UDim2.new(self.ResonixWindow.Position.X.Scale, self.ResonixWindow.Position.X.Offset, 1.5, 0),
+			BackgroundTransparency = 1
+		})
+		windowTween:Play()
+
+		-- Also animate the minimize icon if it exists
+		local minimizeIcon = screenGui:FindFirstChild("minimizeIcon")
+		if minimizeIcon then
+			local iconTween = game:GetService("TweenService"):Create(minimizeIcon, tweenInfo, {
+				BackgroundTransparency = 1
+			})
+			iconTween:Play()
+		end
+
+		-- Wait for the animation to complete
+		windowTween.Completed:Wait()
+
+		-- Destroy the ScreenGui after the animation
+		screenGui:Destroy()
+
+		-- Clear references
+		self.ResonixWindow = nil
+		self.ScrollingFrame = nil
+		self.AllFrame = nil
+	end
+end
+
+return Library
