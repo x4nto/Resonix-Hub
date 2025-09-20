@@ -1338,7 +1338,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     dropdownLabel.Size = UDim2.new(0.7, -10, 1, -10)
     dropdownLabel.Position = UDim2.new(0, 5, 0, 5)
     dropdownLabel.Font = Enum.Font.GothamBold
-    dropdownLabel.Text = dropdownName
+    dropdownLabel.Text = dropdownName .. " : " .. (defaultOption or "")
     dropdownLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
     dropdownLabel.TextSize = 14
     dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1411,9 +1411,17 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     -- Function to update both the dropdown label and description
     local function updateSelection(option)
         selectedOption = option
-        dropdownLabel.Text = dropdownName
+        dropdownLabel.Text = dropdownName .. " : " .. option
         descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. option .. ")"
         if callback then callback(option) end
+    end
+
+    -- Handle selection of an option
+    local function selectOption(option)
+        updateSelection(option)
+        if isOpen then
+            toggleDropdown()
+        end
     end
 
     -- Function to create option buttons
@@ -1444,7 +1452,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     end
 
     -- Define the function to toggle the dropdown
-    local function toggleDropdown()
+    function toggleDropdown()
         isOpen = not isOpen
 
         -- Rotate the arrow
@@ -1490,14 +1498,6 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
                     optionsFrame.Visible = false
                 end
             end)
-        end
-    end
-
-    -- Handle selection of an option
-    local function selectOption(option)
-        updateSelection(option)
-        if isOpen then
-            toggleDropdown()
         end
     end
 
@@ -1627,6 +1627,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         end
     }
 end
+
 
 function Library:Destroy()
 	-- Check if the window exists
