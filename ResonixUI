@@ -1355,13 +1355,13 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     dropdownArrow.ImageRectSize = Vector2.new(36, 36)
     dropdownArrow.ZIndex = 3
 
-    -- Create the options frame (hidden by default) - parented to the dropdown frame instead
+    -- Create the options frame (hidden by default) - parented to main window
     local optionsFrame = Instance.new("Frame")
-    optionsFrame.Parent = dropdownFrame
+    optionsFrame.Parent = self.ResonixWindow
     optionsFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
     optionsFrame.BorderSizePixel = 0
-    optionsFrame.Size = UDim2.new(1, 0, 0, 0)
-    optionsFrame.Position = UDim2.new(0, 0, 1, 2)
+    optionsFrame.Size = UDim2.new(0, 230, 0, 0)
+    optionsFrame.Position = UDim2.new(1, 10, 0, 0)
     optionsFrame.Visible = false
     optionsFrame.ZIndex = 10
     optionsFrame.Name = "DropdownOptionsFrame"
@@ -1462,7 +1462,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             optionsFrame.Visible = true
 
             -- Calculate the required height based on number of options
-            local maxHeight = 150 -- Fixed max height
+            local maxHeight = self.ResonixWindow.Size.Y.Offset - 50
             local targetHeight = math.min(#options * 28, maxHeight)
 
             -- Animate the options frame
@@ -1470,7 +1470,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
                 optionsFrame,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                 {
-                    Size = UDim2.new(1, 0, 0, targetHeight)
+                    Size = UDim2.new(0, 230, 0, targetHeight)
                 }
             )
             optionsTween:Play()
@@ -1480,7 +1480,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
                 optionsFrame,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                 {
-                    Size = UDim2.new(1, 0, 0, 0)
+                    Size = UDim2.new(0, 230, 0, 0)
                 }
             )
             optionsTween:Play()
