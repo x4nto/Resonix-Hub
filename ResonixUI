@@ -1143,485 +1143,519 @@ function Library:CreateImageButton(tabContainer, buttonName, imageId, viewButton
 end
 
 function Library:CreateOneTimeButton(tabContainer, buttonName, callback, description)
-    -- Create the button
-    local button = Instance.new("TextButton")
-    button.Parent = tabContainer
-    button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
-    button.BorderSizePixel = 0
-    button.Size = UDim2.new(1, 0, 0, 28)
-    button.Text = ""
-    button.AutoButtonColor = false
+	-- Create the button
+	local button = Instance.new("TextButton")
+	button.Parent = tabContainer
+	button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	button.BorderSizePixel = 0
+	button.Size = UDim2.new(1, 0, 0, 28)
+	button.Text = ""
+	button.AutoButtonColor = false
 
-    -- Add UICorner
-    local UICorner = Instance.new("UICorner")
-    UICorner.Parent = button
+	-- Add UICorner
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = button
 
-    -- Create button text
-    local buttonText = Instance.new("TextLabel")
-    buttonText.Parent = button
-    buttonText.BackgroundTransparency = 1
-    buttonText.Size = UDim2.new(1, -10, 1, -10)
-    buttonText.Position = UDim2.new(0, 5, 0, 5)
-    buttonText.Font = Enum.Font.GothamBold
-    buttonText.Text = buttonName
-    buttonText.TextColor3 = Color3.fromRGB(255, 0, 4)
-    buttonText.TextSize = 14
-    buttonText.TextXAlignment = Enum.TextXAlignment.Left
+	-- Create button text
+	local buttonText = Instance.new("TextLabel")
+	buttonText.Parent = button
+	buttonText.BackgroundTransparency = 1
+	buttonText.Size = UDim2.new(1, -10, 1, -10)
+	buttonText.Position = UDim2.new(0, 5, 0, 5)
+	buttonText.Font = Enum.Font.GothamBold
+	buttonText.Text = buttonName
+	buttonText.TextColor3 = Color3.fromRGB(255, 0, 4)
+	buttonText.TextSize = 14
+	buttonText.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Track if button has been clicked
-    local hasBeenClicked = false
+	-- Track if button has been clicked
+	local hasBeenClicked = false
 
-    -- Touch handling variables
-    local touchStartTime = 0
-    local touchStartPos = nil
-    local isTouchActive = false
-    local maxTapDuration = 0.3
-    local maxTapMovement = 10
-    local isScrolling = false
+	-- Touch handling variables
+	local touchStartTime = 0
+	local touchStartPos = nil
+	local isTouchActive = false
+	local maxTapDuration = 0.3
+	local maxTapMovement = 10
+	local isScrolling = false
 
-    -- Button press visual effect
-    local function setPressedState(pressed)
-        if hasBeenClicked then return end -- Don't show pressed state if already clicked
-        game:GetService("TweenService"):Create(
-            button,
-            TweenInfo.new(0.1),
-            {
-                BackgroundColor3 = pressed and Color3.fromRGB(50, 0, 0) or Color3.fromRGB(25, 0, 0)
-            }
-        ):Play()
-    end
+	-- Button press visual effect
+	local function setPressedState(pressed)
+		if hasBeenClicked then return end -- Don't show pressed state if already clicked
+		game:GetService("TweenService"):Create(
+			button,
+			TweenInfo.new(0.1),
+			{
+				BackgroundColor3 = pressed and Color3.fromRGB(50, 0, 0) or Color3.fromRGB(25, 0, 0)
+			}
+		):Play()
+	end
 
-    -- Function to handle button action
-    local function handleButtonAction()
-        if hasBeenClicked then return end -- Don't allow multiple clicks
-        
-        hasBeenClicked = true
-        
-        -- Change button appearance to show it's been clicked
-        buttonText.Text = buttonName .. " (Active)"
-        game:GetService("TweenService"):Create(
-            button,
-            TweenInfo.new(0.2),
-            {
-                BackgroundColor3 = Color3.fromRGB(15, 0, 0)
-            }
-        ):Play()
-        
-        -- Disable the button
-        button.Active = false
-        
-        -- Run the callback in a protected call
-        local success, err = pcall(callback)
-        if not success then
-            warn("OneTimeButton callback error:", err)
-        end
-    end
+	-- Function to handle button action
+	local function handleButtonAction()
+		if hasBeenClicked then return end -- Don't allow multiple clicks
 
-    -- Input handling
-    button.InputBegan:Connect(function(input)
-        if hasBeenClicked then return end
-        
-        if input.UserInputType == Enum.UserInputType.Touch then
-            touchStartTime = tick()
-            touchStartPos = input.Position
-            isTouchActive = true
-            isScrolling = false
-            setPressedState(true)
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            setPressedState(true)
-        end
-    end)
+		hasBeenClicked = true
 
-    button.InputChanged:Connect(function(input)
-        if isTouchActive and input.UserInputType == Enum.UserInputType.Touch then
-            local currentPos = input.Position
-            local movement = touchStartPos and (currentPos - touchStartPos).magnitude or 0
+		-- Change button appearance to show it's been clicked
+		buttonText.Text = buttonName .. " (Active)"
+		game:GetService("TweenService"):Create(
+			button,
+			TweenInfo.new(0.2),
+			{
+				BackgroundColor3 = Color3.fromRGB(15, 0, 0)
+			}
+		):Play()
 
-            if movement > maxTapMovement then
-                isScrolling = true
-                setPressedState(false)
-            end
-        end
-    end)
+		-- Disable the button
+		button.Active = false
 
-    button.InputEnded:Connect(function(input)
-        if hasBeenClicked then return end
-        
-        if input.UserInputType == Enum.UserInputType.Touch and isTouchActive then
-            local touchDuration = tick() - touchStartTime
-            local endPos = input.Position
-            local movement = touchStartPos and (endPos - touchStartPos).magnitude or 0
+		-- Run the callback in a protected call
+		local success, err = pcall(callback)
+		if not success then
+			warn("OneTimeButton callback error:", err)
+		end
+	end
 
-            if not isScrolling and touchDuration <= maxTapDuration and movement <= maxTapMovement then
-                handleButtonAction()
-            end
+	-- Input handling
+	button.InputBegan:Connect(function(input)
+		if hasBeenClicked then return end
 
-            setPressedState(false)
-            isTouchActive = false
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            handleButtonAction()
-            setPressedState(false)
-        end
-    end)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			touchStartTime = tick()
+			touchStartPos = input.Position
+			isTouchActive = true
+			isScrolling = false
+			setPressedState(true)
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			setPressedState(true)
+		end
+	end)
 
-    -- Ensure button is released if touch is lost
-    UserInputService.TouchEnded:Connect(function(input, processed)
-        if not processed and isTouchActive then
-            setPressedState(false)
-            isTouchActive = false
-        end
-    end)
+	button.InputChanged:Connect(function(input)
+		if isTouchActive and input.UserInputType == Enum.UserInputType.Touch then
+			local currentPos = input.Position
+			local movement = touchStartPos and (currentPos - touchStartPos).magnitude or 0
 
-    -- Add description if provided
-    if description then
-        local descLabel = Instance.new("TextLabel")
-        descLabel.Parent = tabContainer
-        descLabel.BackgroundTransparency = 1
-        descLabel.Size = UDim2.new(1, 0, 0, 15)
-        descLabel.Position = UDim2.new(0, 5, 0, 30)
-        descLabel.Font = Enum.Font.Gotham
-        descLabel.Text = description
-        descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-        descLabel.TextSize = 12
-        descLabel.TextXAlignment = Enum.TextXAlignment.Left
-    end
+			if movement > maxTapMovement then
+				isScrolling = true
+				setPressedState(false)
+			end
+		end
+	end)
 
-    -- Return the button and a function to reset it if needed
-    return {
-        Reset = function()
-            hasBeenClicked = false
-            buttonText.Text = buttonName
-            button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
-            button.Active = true
-        end
-    }
+	button.InputEnded:Connect(function(input)
+		if hasBeenClicked then return end
+
+		if input.UserInputType == Enum.UserInputType.Touch and isTouchActive then
+			local touchDuration = tick() - touchStartTime
+			local endPos = input.Position
+			local movement = touchStartPos and (endPos - touchStartPos).magnitude or 0
+
+			if not isScrolling and touchDuration <= maxTapDuration and movement <= maxTapMovement then
+				handleButtonAction()
+			end
+
+			setPressedState(false)
+			isTouchActive = false
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			handleButtonAction()
+			setPressedState(false)
+		end
+	end)
+
+	-- Ensure button is released if touch is lost
+	UserInputService.TouchEnded:Connect(function(input, processed)
+		if not processed and isTouchActive then
+			setPressedState(false)
+			isTouchActive = false
+		end
+	end)
+
+	-- Add description if provided
+	if description then
+		local descLabel = Instance.new("TextLabel")
+		descLabel.Parent = tabContainer
+		descLabel.BackgroundTransparency = 1
+		descLabel.Size = UDim2.new(1, 0, 0, 15)
+		descLabel.Position = UDim2.new(0, 5, 0, 30)
+		descLabel.Font = Enum.Font.Gotham
+		descLabel.Text = description
+		descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+		descLabel.TextSize = 12
+		descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	end
+
+	-- Return the button and a function to reset it if needed
+	return {
+		Reset = function()
+			hasBeenClicked = false
+			buttonText.Text = buttonName
+			button.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+			button.Active = true
+		end
+	}
 end
 
 function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOption, callback, description)
-    -- Set default option if not provided
-    defaultOption = defaultOption or options[1]
+	-- Set default option if not provided
+	defaultOption = defaultOption or options[1]
 
-    -- Store the base description separately
-    local baseDescription = description or ""
+	-- Store the base description separately
+	local baseDescription = description or ""
 
-    -- Create the dropdown frame
-    local dropdownFrame = Instance.new("Frame")
-    dropdownFrame.Parent = tabContainer
-    dropdownFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
-    dropdownFrame.BorderSizePixel = 0
-    dropdownFrame.Size = UDim2.new(1, 0, 0, 28)
-    dropdownFrame.ClipsDescendants = false
-    dropdownFrame.Name = "DropdownFrame"
+	-- Create the dropdown frame
+	local dropdownFrame = Instance.new("Frame")
+	dropdownFrame.Parent = tabContainer
+	dropdownFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	dropdownFrame.BorderSizePixel = 0
+	dropdownFrame.Size = UDim2.new(1, 0, 0, 28)
+	dropdownFrame.ClipsDescendants = false
+	dropdownFrame.Name = "DropdownFrame"
 
-    -- Add a UICorner to the dropdown frame
-    local UICorner = Instance.new("UICorner")
-    UICorner.Parent = dropdownFrame
+	-- Add a UICorner to the dropdown frame
+	local UICorner = Instance.new("UICorner")
+	UICorner.Parent = dropdownFrame
 
-    -- Create the main dropdown button
-    local dropdownButton = Instance.new("TextButton")
-    dropdownButton.Parent = dropdownFrame
-    dropdownButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
-    dropdownButton.BorderSizePixel = 0
-    dropdownButton.Size = UDim2.new(1, 0, 0, 28)
-    dropdownButton.Text = ""
-    dropdownButton.AutoButtonColor = false
-    dropdownButton.ZIndex = 2
+	-- Create the main dropdown button
+	local dropdownButton = Instance.new("TextButton")
+	dropdownButton.Parent = dropdownFrame
+	dropdownButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	dropdownButton.BorderSizePixel = 0
+	dropdownButton.Size = UDim2.new(1, 0, 0, 28)
+	dropdownButton.Text = ""
+	dropdownButton.AutoButtonColor = false
+	dropdownButton.ZIndex = 2
 
-    -- Add a UICorner to the dropdown button
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.Parent = dropdownButton
+	-- Add a UICorner to the dropdown button
+	local buttonCorner = Instance.new("UICorner")
+	buttonCorner.Parent = dropdownButton
 
-    -- Create dropdown label
-    local dropdownLabel = Instance.new("TextLabel")
-    dropdownLabel.Parent = dropdownButton
-    dropdownLabel.BackgroundTransparency = 1
-    dropdownLabel.Size = UDim2.new(0.7, -10, 1, -10)
-    dropdownLabel.Position = UDim2.new(0, 5, 0, 5)
-    dropdownLabel.Font = Enum.Font.GothamBold
-    dropdownLabel.Text = dropdownName
-    dropdownLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
-    dropdownLabel.TextSize = 14
-    dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
-    dropdownLabel.ZIndex = 3
+	-- Create dropdown label
+	local dropdownLabel = Instance.new("TextLabel")
+	dropdownLabel.Parent = dropdownButton
+	dropdownLabel.BackgroundTransparency = 1
+	dropdownLabel.Size = UDim2.new(0.7, -10, 1, -10)
+	dropdownLabel.Position = UDim2.new(0, 5, 0, 5)
+	dropdownLabel.Font = Enum.Font.GothamBold
+	dropdownLabel.Text = dropdownName
+	dropdownLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+	dropdownLabel.TextSize = 14
+	dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dropdownLabel.ZIndex = 3
 
-    -- Create the dropdown arrow
-    local dropdownArrow = Instance.new("ImageLabel")
-    dropdownArrow.Parent = dropdownButton
-    dropdownArrow.BackgroundTransparency = 1
-    dropdownArrow.Size = UDim2.new(0, 16, 0, 16)
-    dropdownArrow.Position = UDim2.new(0.95, -18, 0.5, -8)
-    dropdownArrow.Image = "rbxassetid://3926305904"
-    dropdownArrow.ImageRectOffset = Vector2.new(564, 284)
-    dropdownArrow.ImageRectSize = Vector2.new(36, 36)
-    dropdownArrow.ZIndex = 3
+	-- Create the dropdown arrow
+	local dropdownArrow = Instance.new("ImageLabel")
+	dropdownArrow.Parent = dropdownButton
+	dropdownArrow.BackgroundTransparency = 1
+	dropdownArrow.Size = UDim2.new(0, 16, 0, 16)
+	dropdownArrow.Position = UDim2.new(0.95, -18, 0.5, -8)
+	dropdownArrow.Image = "rbxassetid://3926305904"
+	dropdownArrow.ImageRectOffset = Vector2.new(564, 284)
+	dropdownArrow.ImageRectSize = Vector2.new(36, 36)
+	dropdownArrow.ZIndex = 3
 
-    -- Create the options frame (hidden by default) - parented to main window
-    local optionsFrame = Instance.new("Frame")
-    optionsFrame.Parent = self.ResonixWindow
-    optionsFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
-    optionsFrame.BorderSizePixel = 0
-    optionsFrame.Size = UDim2.new(0, 230, 0, 0)
-    optionsFrame.Position = UDim2.new(1, 10, 0, 0)
-    optionsFrame.Visible = false
-    optionsFrame.ZIndex = 10
-    optionsFrame.Name = "DropdownOptionsFrame"
+	-- Create the options frame (hidden by default) - parented to main window
+	local optionsFrame = Instance.new("Frame")
+	optionsFrame.Parent = self.ResonixWindow
+	optionsFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+	optionsFrame.BorderSizePixel = 0
+	optionsFrame.Size = UDim2.new(0, 230, 0, 0) -- Same size as image viewer
+	optionsFrame.Position = UDim2.new(1, 10, 0, 0) -- Same position as image viewer
+	optionsFrame.Visible = false
+	optionsFrame.ZIndex = 10
+	optionsFrame.Name = "DropdownOptionsFrame"
 
-    -- Add a UICorner to the options frame
-    local optionsCorner = Instance.new("UICorner")
-    optionsCorner.Parent = optionsFrame
-    optionsCorner.CornerRadius = UDim.new(0, 8)
+	-- Add a UICorner to the options frame
+	local optionsCorner = Instance.new("UICorner")
+	optionsCorner.Parent = optionsFrame
+	optionsCorner.CornerRadius = UDim.new(0, 8)
 
-    -- Create a scrolling frame for options
-    local optionsScroller = Instance.new("ScrollingFrame")
-    optionsScroller.Parent = optionsFrame
-    optionsScroller.BackgroundTransparency = 1
-    optionsScroller.Size = UDim2.new(1, 0, 1, 0)
-    optionsScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
-    optionsScroller.ScrollBarThickness = 2
-    optionsScroller.ZIndex = 10
+	-- Create a scrolling frame for options
+	local optionsScroller = Instance.new("ScrollingFrame")
+	optionsScroller.Parent = optionsFrame
+	optionsScroller.BackgroundTransparency = 1
+	optionsScroller.Size = UDim2.new(1, 0, 1, 0)
+	optionsScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
+	optionsScroller.ScrollBarThickness = 2
+	optionsScroller.ZIndex = 10
 
-    -- Create a UIListLayout for the options
-    local optionsLayout = Instance.new("UIListLayout")
-    optionsLayout.Parent = optionsScroller
-    optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    optionsLayout.Padding = UDim.new(0, 2)
+	-- Create a UIListLayout for the options
+	local optionsLayout = Instance.new("UIListLayout")
+	optionsLayout.Parent = optionsScroller
+	optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	optionsLayout.Padding = UDim.new(0, 2)
 
-    -- Update canvas size when layout changes
-    optionsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
-    end)
+	-- Update canvas size when layout changes
+	optionsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
+	end)
 
-    -- Track if dropdown is open
-    local isOpen = false
-    local selectedOption = defaultOption
-    local tweenService = game:GetService("TweenService")
+	-- Track if dropdown is open
+	local isOpen = false
+	local selectedOption = defaultOption
+	local tweenService = game:GetService("TweenService")
 
-    -- Create description label
-    local descLabel = Instance.new("TextLabel")
-    descLabel.Parent = tabContainer
-    descLabel.BackgroundTransparency = 1
-    descLabel.Size = UDim2.new(1, 0, 0, 15)
-    descLabel.Position = UDim2.new(0, 5, 0, dropdownFrame.Position.Y.Offset + dropdownFrame.Size.Y.Offset + 2)
-    descLabel.Font = Enum.Font.Gotham
-    descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
-    descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-    descLabel.TextSize = 12
-    descLabel.TextXAlignment = Enum.TextXAlignment.Left
+	-- Create description label
+	local descLabel = Instance.new("TextLabel")
+	descLabel.Parent = tabContainer
+	descLabel.BackgroundTransparency = 1
+	descLabel.Size = UDim2.new(1, 0, 0, 15)
+	descLabel.Position = UDim2.new(0, 5, 0, dropdownFrame.Position.Y.Offset + dropdownFrame.Size.Y.Offset + 2)
+	descLabel.Font = Enum.Font.Gotham
+	descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
+	descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+	descLabel.TextSize = 12
+	descLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Function to update both the dropdown label and description
-    local function updateSelection(option)
-        selectedOption = option
-        dropdownLabel.Text = dropdownName
-        descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. option .. ")"
-        if callback then callback(option) end
-    end
+	-- Function to update both the dropdown label and description
+	local function updateSelection(option)
+		selectedOption = option
+		dropdownLabel.Text = dropdownName
+		descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. option .. ")"
+		if callback then callback(option) end
+	end
 
-    -- Define the function to toggle the dropdown
-    local function toggleDropdown()
-        isOpen = not isOpen
+	-- Define the function to toggle the dropdown
+	local function toggleDropdown()
+		isOpen = not isOpen
 
-        -- Rotate the arrow
-        local arrowTween = tweenService:Create(
-            dropdownArrow,
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {
-                Rotation = isOpen and 180 or 0
-            }
-        )
-        arrowTween:Play()
+		-- Rotate the arrow
+		local arrowTween = tweenService:Create(
+			dropdownArrow,
+			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Rotation = isOpen and 180 or 0
+			}
+		)
+		arrowTween:Play()
 
-        if isOpen then
-            -- Show the options frame
-            optionsFrame.Visible = true
+		if isOpen then
+			-- Show the options frame
+			optionsFrame.Visible = true
 
-            -- Calculate the required height based on number of options
-            local maxHeight = self.ResonixWindow.Size.Y.Offset - 0
-            local targetHeight = math.min(#options * 28, maxHeight)
+			-- Calculate the required height based on number of options (max height is library height minus some padding)
+			local maxHeight = self.ResonixWindow.Size.Y.Offset - 0  -- Subtract some padding
+			local targetHeight = math.min(#options * 28, maxHeight)
 
-            -- Animate the options frame
-            local optionsTween = tweenService:Create(
-                optionsFrame,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {
-                    Size = UDim2.new(0, 230, 0, targetHeight)
-                }
-            )
-            optionsTween:Play()
-        else
-            -- Animate the options frame closed
-            local optionsTween = tweenService:Create(
-                optionsFrame,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {
-                    Size = UDim2.new(0, 230, 0, 0)
-                }
-            )
-            optionsTween:Play()
+			-- Animate the options frame to match image viewer behavior
+			local optionsTween = tweenService:Create(
+				optionsFrame,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					Size = UDim2.new(0, 230, 0, targetHeight)
+				}
+			)
+			optionsTween:Play()
+		else
+			-- Animate the options frame closed
+			local optionsTween = tweenService:Create(
+				optionsFrame,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					Size = UDim2.new(0, 230, 0, 0)
+				}
+			)
+			optionsTween:Play()
 
-            optionsTween.Completed:Connect(function()
-                if not isOpen then
-                    optionsFrame.Visible = false
-                end
-            end)
-        end
-    end
+			-- Hide the options frame after animation
+			optionsTween.Completed:Connect(function()
+				if not isOpen then
+					optionsFrame.Visible = false
+				end
+			end)
+		end
+	end
 
-    -- Handle selection of an option
-    local function selectOption(option)
-        updateSelection(option)
-        if isOpen then
-            toggleDropdown()
-        end
-    end
+	-- [Rest of the function remains the same...]
+	-- Handle selection of an option
+	local function selectOption(option)
+		updateSelection(option)
+		if isOpen then
+			toggleDropdown()
+		end
+	end
 
-    -- Function to create option buttons
-    local function createOptionButtons(optionsList)
-        for _, option in ipairs(optionsList) do
-            local optionButton = Instance.new("TextButton")
-            optionButton.Parent = optionsScroller
-            optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
-            optionButton.BorderSizePixel = 0
-            optionButton.Size = UDim2.new(1, -10, 0, 26)
-            optionButton.Position = UDim2.new(0, 5, 0, 0)
-            optionButton.Text = option
-            optionButton.Font = Enum.Font.GothamBold
-            optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
-            optionButton.TextSize = 14
-            optionButton.AutoButtonColor = false
-            optionButton.ZIndex = 11
+	-- Track touch input state
+	local touchStartPos = nil
+	local touchStartTime = 0
+	local isDragging = false
+	local maxTapDuration = 0.3
+	local maxTapMovement = 10
 
-            -- Add a UICorner to the option button
-            local optionCorner = Instance.new("UICorner")
-            optionCorner.Parent = optionButton
+	-- Mobile and desktop input handling for dropdown button
+	dropdownButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			touchStartPos = input.Position
+			touchStartTime = tick()
+			isDragging = false
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			toggleDropdown()
+		end
+	end)
 
-            -- Simple click handler for option buttons
-            optionButton.MouseButton1Click:Connect(function()
-                selectOption(option)
-            end)
-        end
-    end
+	dropdownButton.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
+			local currentPos = input.Position
+			local movement = (currentPos - touchStartPos).magnitude
 
-    -- Track touch input state
-    local touchStartPos = nil
-    local touchStartTime = 0
-    local isDragging = false
-    local maxTapDuration = 0.3
-    local maxTapMovement = 10
+			if movement > maxTapMovement then
+				isDragging = true
+			end
+		end
+	end)
 
-    -- Mobile and desktop input handling for dropdown button
-    dropdownButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch then
-            touchStartPos = input.Position
-            touchStartTime = tick()
-            isDragging = false
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            toggleDropdown()
-        end
-    end)
+	dropdownButton.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
+			local touchDuration = tick() - touchStartTime
+			local endPos = input.Position
+			local movement = (endPos - touchStartPos).magnitude
 
-    dropdownButton.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
-            local currentPos = input.Position
-            local movement = (currentPos - touchStartPos).magnitude
+			if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+				toggleDropdown()
+			end
+		end
+	end)
 
-            if movement > maxTapMovement then
-                isDragging = true
-            end
-        end
-    end)
+	-- Close dropdown when clicking outside
+	local function onInputBegan(input)
+		if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
+			local mousePos = input.Position
+			local isInDropdown = dropdownFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+			local isInOptions = optionsFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
 
-    dropdownButton.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
-            local touchDuration = tick() - touchStartTime
-            local endPos = input.Position
-            local movement = (endPos - touchStartPos).magnitude
+			if not isInDropdown and not isInOptions then
+				toggleDropdown()
+			end
+		end
+	end
 
-            if touchDuration <= maxTapDuration and movement <= maxTapMovement then
-                toggleDropdown()
-            end
-        end
-    end)
+	-- Connect the input handler
+	game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
 
-    -- Close dropdown when clicking outside
-    local function onInputBegan(input)
-        if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local mousePos = input.Position
-            local isInDropdown = dropdownFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
-            local isInOptions = optionsFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+	-- Create option buttons
+	for _, option in ipairs(options) do
+		local optionButton = Instance.new("TextButton")
+		optionButton.Parent = optionsScroller
+		optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+		optionButton.BorderSizePixel = 0
+		optionButton.Size = UDim2.new(1, -10, 0, 26)
+		optionButton.Position = UDim2.new(0, 5, 0, 0)
+		optionButton.Text = option
+		optionButton.Font = Enum.Font.GothamBold
+		optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+		optionButton.TextSize = 14
+		optionButton.AutoButtonColor = false
+		optionButton.ZIndex = 11 -- Higher zindex to appear above other elements
 
-            if not isInDropdown and not isInOptions then
-                toggleDropdown()
-            end
-        end
-    end
+		-- Add a UICorner to the option button
+		local optionCorner = Instance.new("UICorner")
+		optionCorner.Parent = optionButton
 
-    -- Connect the input handler
-    game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
+		-- Button press visual effect
+		optionButton.MouseButton1Click:Connect(function()
+			selectOption(option)
+		end)
 
-    -- Create initial option buttons
-    createOptionButtons(options)
+		-- Touch handling for option buttons
+		local optionTouchStartPos = nil
+		local optionTouchStartTime = 0
+		local optionIsDragging = false
 
-    -- Return the dropdown object with refresh capability
-    return {
-        Refresh = function(newOptions, newDefault)
-            -- Clear existing options
-            for _, child in ipairs(optionsScroller:GetChildren()) do
-                if child:IsA("TextButton") then
-                    child:Destroy()
-                end
-            end
+		optionButton.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				optionTouchStartPos = input.Position
+				optionTouchStartTime = tick()
+				optionIsDragging = false
+				optionButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				optionButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+			end
+		end)
 
-            -- Update options
-            options = newOptions or options
-            selectedOption = newDefault or options[1] or "No options"
-            
-            -- Update selection display
-            updateSelection(selectedOption)
-            
-            -- Create new option buttons
-            createOptionButtons(options)
-            
-            -- Close dropdown if open
-            if isOpen then
-                toggleDropdown()
-            end
-        end,
+		optionButton.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch and optionTouchStartPos then
+				local currentPos = input.Position
+				local movement = (currentPos - optionTouchStartPos).magnitude
 
-        SetOptions = function(newOptions)
-            -- Clear existing options
-            for _, child in ipairs(optionsScroller:GetChildren()) do
-                if child:IsA("TextButton") then
-                    child:Destroy()
-                end
-            end
+				if movement > maxTapMovement then
+					optionIsDragging = true
+				end
+			end
+		end)
 
-            -- Add new options
-            options = newOptions
-            createOptionButtons(newOptions)
-        end,
+		optionButton.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch and optionTouchStartPos and not optionIsDragging then
+				local touchDuration = tick() - optionTouchStartTime
+				local endPos = input.Position
+				local movement = (endPos - optionTouchStartPos).magnitude
 
-        SetDescription = function(newDesc)
-            baseDescription = newDesc or ""
-            descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
-        end,
+				if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+					selectOption(option)
+				end
+				optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				selectOption(option)
+				optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+			end
+		end)
+	end
 
-        Destroy = function()
-            -- Clean up the options frame
-            if optionsFrame and optionsFrame.Parent then
-                optionsFrame:Destroy()
-            end
+	return {
+		SetOptions = function(newOptions)
+			-- Clear existing options
+			for _, child in ipairs(optionsScroller:GetChildren()) do
+				if child:IsA("TextButton") then
+					child:Destroy()
+				end
+			end
 
-            -- Clean up the dropdown frame
-            if dropdownFrame and dropdownFrame.Parent then
-                dropdownFrame:Destroy()
-            end
+			-- Add new options
+			for _, option in ipairs(newOptions) do
+				local optionButton = Instance.new("TextButton")
+				optionButton.Parent = optionsScroller
+				optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+				optionButton.BorderSizePixel = 0
+				optionButton.Size = UDim2.new(1, -10, 0, 26)
+				optionButton.Position = UDim2.new(0, 5, 0, 0)
+				optionButton.Text = option
+				optionButton.Font = Enum.Font.GothamBold
+				optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+				optionButton.TextSize = 14
+				optionButton.AutoButtonColor = false
+				optionButton.ZIndex = 11
 
-            -- Clean up the description label
-            if descLabel and descLabel.Parent then
-                descLabel:Destroy()
-            end
-        end
-    }
+				local optionCorner = Instance.new("UICorner")
+				optionCorner.Parent = optionButton
+
+				optionButton.MouseButton1Click:Connect(function()
+					selectOption(option)
+				end)
+			end
+		end,
+
+		SetDescription = function(newDesc)
+			baseDescription = newDesc or ""
+			descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
+		end,
+
+		Destroy = function()
+			-- Clean up the options frame
+			if optionsFrame and optionsFrame.Parent then
+				optionsFrame:Destroy()
+			end
+
+			-- Clean up the dropdown frame
+			if dropdownFrame and dropdownFrame.Parent then
+				dropdownFrame:Destroy()
+			end
+
+			-- Clean up the description label
+			if descLabel and descLabel.Parent then
+				descLabel:Destroy()
+			end
+		end
+	}
 end
 
 function Library:Destroy()
