@@ -1297,7 +1297,6 @@ function Library:CreateOneTimeButton(tabContainer, buttonName, callback, descrip
     }
 end
 
-fix this because options are not selectable and put fix the refresh so i can use dropdown again after refresh
 function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOption, callback, description)
     -- Set default option if not provided
     defaultOption = defaultOption or options[1]
