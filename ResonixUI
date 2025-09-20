@@ -1297,169 +1297,60 @@ function Library:CreateOneTimeButton(tabContainer, buttonName, callback, descrip
     }
 end
 
-function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOption, callback, description)
-    defaultOption = defaultOption or options[1] or "No options"
-    local baseDescription = description or ""
-    
-    local dropdownFrame = Instance.new("Frame")
-    dropdownFrame.Parent = tabContainer
-    dropdownFrame.BackgroundColor3 = Color3.fromRGB(25,0,0)
-    dropdownFrame.BorderSizePixel = 0
-    dropdownFrame.Size = UDim2.new(1,0,0,28)
-    dropdownFrame.ClipsDescendants = false
-    dropdownFrame.Name = "DropdownFrame"
-    Instance.new("UICorner", dropdownFrame)
+-- Return table at the end of your original function
+return {
+    Refresh = function(newOptions, newDefault)
+        -- Clear existing option buttons
+        for _, child in ipairs(optionsScroller:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
 
-    local dropdownButton = Instance.new("TextButton")
-    dropdownButton.Parent = dropdownFrame
-    dropdownButton.BackgroundColor3 = Color3.fromRGB(25,0,0)
-    dropdownButton.BorderSizePixel = 0
-    dropdownButton.Size = UDim2.new(1,0,0,28)
-    dropdownButton.Text = ""
-    dropdownButton.AutoButtonColor = false
-    dropdownButton.ZIndex = 2
-    Instance.new("UICorner", dropdownButton)
+        -- Update options and selected value
+        options = newOptions or options
+        selectedOption = newDefault or options[1] or "No options"
 
-    local dropdownLabel = Instance.new("TextLabel")
-    dropdownLabel.Parent = dropdownButton
-    dropdownLabel.BackgroundTransparency = 1
-    dropdownLabel.Size = UDim2.new(0.7,-10,1,-10)
-    dropdownLabel.Position = UDim2.new(0,5,0,5)
-    dropdownLabel.Font = Enum.Font.GothamBold
-    dropdownLabel.Text = dropdownName
-    dropdownLabel.TextColor3 = Color3.fromRGB(255,0,4)
-    dropdownLabel.TextSize = 14
-    dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
-    dropdownLabel.ZIndex = 3
+        -- Update dropdown label and description
+        updateSelection(selectedOption)
 
-    local dropdownArrow = Instance.new("ImageLabel")
-    dropdownArrow.Parent = dropdownButton
-    dropdownArrow.BackgroundTransparency = 1
-    dropdownArrow.Size = UDim2.new(0,16,0,16)
-    dropdownArrow.Position = UDim2.new(0.95,-18,0.5,-8)
-    dropdownArrow.Image = "rbxassetid://3926305904"
-    dropdownArrow.ImageRectOffset = Vector2.new(564,284)
-    dropdownArrow.ImageRectSize = Vector2.new(36,36)
-    dropdownArrow.ZIndex = 3
+        -- Recreate option buttons using your original method
+        createOptionButtons(options)
 
-    local optionsFrame = Instance.new("Frame")
-    optionsFrame.Parent = self.ResonixWindow
-    optionsFrame.BackgroundColor3 = Color3.fromRGB(25,0,0)
-    optionsFrame.BorderSizePixel = 0
-    optionsFrame.Size = UDim2.new(0,230,0,0)
-    optionsFrame.Position = UDim2.new(1,10,0,0)
-    optionsFrame.Visible = false
-    optionsFrame.ZIndex = 10
-    Instance.new("UICorner", optionsFrame).CornerRadius = UDim.new(0,8)
-
-    local optionsScroller = Instance.new("ScrollingFrame")
-    optionsScroller.Parent = optionsFrame
-    optionsScroller.BackgroundTransparency = 1
-    optionsScroller.Size = UDim2.new(1,0,1,0)
-    optionsScroller.CanvasSize = UDim2.new(0,0,0,0)
-    optionsScroller.ScrollBarThickness = 2
-    optionsScroller.ZIndex = 10
-
-    local optionsLayout = Instance.new("UIListLayout")
-    optionsLayout.Parent = optionsScroller
-    optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    optionsLayout.Padding = UDim.new(0,2)
-    optionsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        optionsScroller.CanvasSize = UDim2.new(0,0,0,optionsLayout.AbsoluteContentSize.Y)
-    end)
-
-    local tweenService = game:GetService("TweenService")
-    local isOpen = false
-    local selectedOption = defaultOption
-
-    local descLabel = Instance.new("TextLabel")
-    descLabel.Parent = tabContainer
-    descLabel.BackgroundTransparency = 1
-    descLabel.Size = UDim2.new(1,0,0,15)
-    descLabel.Position = UDim2.new(0,5,0,dropdownFrame.Position.Y.Offset+dropdownFrame.Size.Y.Offset+2)
-    descLabel.Font = Enum.Font.Gotham
-    descLabel.TextColor3 = Color3.fromRGB(150,150,150)
-    descLabel.TextSize = 12
-    descLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    local function updateSelection(option)
-        selectedOption = option
-        dropdownLabel.Text = dropdownName
-        descLabel.Text = baseDescription .. (baseDescription~="" and " " or "") .. "(Selected: "..option..")"
-        if callback then callback(option) end
-    end
-
-    local function toggleDropdown()
-        isOpen = not isOpen
-        tweenService:Create(dropdownArrow,TweenInfo.new(0.2),{Rotation = isOpen and 180 or 0}):Play()
-
+        -- Close dropdown if open
         if isOpen then
-            optionsFrame.Visible = true
-            local maxHeight = self.ResonixWindow.Size.Y.Offset-0
-            local targetHeight = math.min(#options*28, maxHeight)
-            tweenService:Create(optionsFrame,TweenInfo.new(0.2),{Size=UDim2.new(0,230,0,targetHeight)}):Play()
-        else
-            tweenService:Create(optionsFrame,TweenInfo.new(0.2),{Size=UDim2.new(0,230,0,0)}):Play()
-            task.delay(0.2,function()
-                optionsFrame.Visible = false
-            end)
+            toggleDropdown()
+        end
+    end,
+
+    SetOptions = function(newOptions)
+        for _, child in ipairs(optionsScroller:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        options = newOptions
+        createOptionButtons(newOptions)
+    end,
+
+    SetDescription = function(newDesc)
+        baseDescription = newDesc or ""
+        descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. selectedOption .. ")"
+    end,
+
+    Destroy = function()
+        if optionsFrame and optionsFrame.Parent then
+            optionsFrame:Destroy()
+        end
+        if dropdownFrame and dropdownFrame.Parent then
+            dropdownFrame:Destroy()
+        end
+        if descLabel and descLabel.Parent then
+            descLabel:Destroy()
         end
     end
+}
 
-    local function selectOption(option)
-        updateSelection(option)
-        if isOpen then toggleDropdown() end
-    end
-
-    local function createOptionButtons(list)
-        optionsScroller:ClearAllChildren()
-        for _, option in ipairs(list) do
-            local btn = Instance.new("TextButton")
-            btn.Parent = optionsScroller
-            btn.BackgroundColor3 = Color3.fromRGB(35,10,10)
-            btn.BorderSizePixel = 0
-            btn.Size = UDim2.new(1,-10,0,26)
-            btn.Position = UDim2.new(0,5,0,0)
-            btn.Text = option
-            btn.Font = Enum.Font.GothamBold
-            btn.TextColor3 = Color3.fromRGB(255,0,4)
-            btn.TextSize = 14
-            btn.AutoButtonColor = false
-            Instance.new("UICorner", btn)
-            btn.MouseButton1Click:Connect(function() selectOption(option) end)
-        end
-    end
-
-    dropdownButton.MouseButton1Click:Connect(toggleDropdown)
-
-    -- Initial buttons
-    createOptionButtons(options)
-    updateSelection(selectedOption)
-
-    -- Return API with fixed Refresh
-    return {
-        Refresh = function(newOptions,newDefault)
-            options = newOptions or options
-            selectedOption = newDefault or options[1] or "No options"
-            createOptionButtons(options)
-            updateSelection(selectedOption)
-            if isOpen then toggleDropdown() end
-        end,
-        SetOptions = function(newOptions)
-            options = newOptions
-            createOptionButtons(options)
-        end,
-        SetDescription = function(newDesc)
-            baseDescription = newDesc or ""
-            updateSelection(selectedOption)
-        end,
-        Destroy = function()
-            if optionsFrame and optionsFrame.Parent then optionsFrame:Destroy() end
-            if dropdownFrame and dropdownFrame.Parent then dropdownFrame:Destroy() end
-            if descLabel and descLabel.Parent then descLabel:Destroy() end
-        end
-    }
-end
 
 function Library:Destroy()
 	-- Check if the window exists
