@@ -1306,7 +1306,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     local OPTION_PADDING = 2
     local OPTIONS_WIDTH = 230
 
-    -- Root dropdown frame
+    -- root frames
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Name = "DropdownFrame"
     dropdownFrame.Parent = tabContainer
@@ -1317,6 +1317,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     Instance.new("UICorner").Parent = dropdownFrame
 
     local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Name = "DropdownButton"
     dropdownButton.Parent = dropdownFrame
     dropdownButton.Size = UDim2.new(1, 0, 1, 0)
     dropdownButton.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
@@ -1346,8 +1347,14 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     dropdownArrow.ImageRectSize = Vector2.new(36, 36)
     dropdownArrow.ZIndex = 3
 
-    -- Options frame (parent = window for overlap)
-    local rootWindow = self.ResonixWindow or dropdownFrame.Parent
+    -- options frame parent: prefer self.ResonixWindow if valid, otherwise parent of dropdownFrame
+    local rootWindow = nil
+    if type(self) == "table" and self.ResonixWindow and self.ResonixWindow:IsA("GuiBase2d") then
+        rootWindow = self.ResonixWindow
+    else
+        rootWindow = dropdownFrame.Parent
+    end
+
     local optionsFrame = Instance.new("Frame")
     optionsFrame.Name = "DropdownOptionsFrame"
     optionsFrame.Parent = rootWindow
@@ -1357,9 +1364,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     optionsFrame.Visible = false
     optionsFrame.ZIndex = 50
     optionsFrame.ClipsDescendants = true
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = optionsFrame
+    local optionsCorner = Instance.new("UICorner"); optionsCorner.Parent = optionsFrame; optionsCorner.CornerRadius = UDim.new(0, 8)
 
     local optionsScroller = Instance.new("ScrollingFrame")
     optionsScroller.Parent = optionsFrame
@@ -1368,13 +1373,19 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     optionsScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
     optionsScroller.ScrollBarThickness = 2
     optionsScroller.ZIndex = 51
+    optionsScroller.AutomaticCanvasSize = Enum.AutomaticSize.None
 
     local optionsLayout = Instance.new("UIListLayout")
     optionsLayout.Parent = optionsScroller
     optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     optionsLayout.Padding = UDim.new(0, OPTION_PADDING)
 
-    -- Description label
+    -- update canvas size after layout changes
+    optionsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
+    end)
+
+    -- description label below dropdown
     local descLabel = Instance.new("TextLabel")
     descLabel.Parent = tabContainer
     descLabel.BackgroundTransparency = 1
@@ -1385,40 +1396,54 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     descLabel.TextColor3 = Color3.fromRGB(150,150,150)
     descLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- State
+    -- services & state
     local TweenService = game:GetService("TweenService")
     local UserInputService = game:GetService("UserInputService")
     local isOpen = false
-    local selectedOption = defaultOption
+    local selectedOption = defaultOption or "No options"
 
-    -- Forward functions
+    -- forward declarations
     local updateSelection, selectOption, createOptionButtons, toggleDropdown
 
-    -- Update selected option
+    -- helper: safe wait a tiny bit to ensure AbsolutePosition/Size are available
+    local function ensureRendered(instance)
+        if not instance then return end
+        if instance.AbsoluteSize.X == 0 and instance.AbsoluteSize.Y == 0 then
+            task.wait(0)
+        end
+    end
+
+    -- update selection & call callback safely
     function updateSelection(option)
         selectedOption = option
-        dropdownLabel.Text = dropdownName .. " : " .. tostring(option)
-        descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. tostring(option) .. ")"
+        dropdownLabel.Text = dropdownName .. " : " .. tostring(option or "")
+        descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. tostring(option or "") .. ")"
         if callback then
             local ok, err = pcall(function() callback(option) end)
             if not ok then warn("Dropdown callback error:", err) end
         end
     end
 
-    -- Select handler
     function selectOption(option)
         updateSelection(option)
-        if isOpen then toggleDropdown() end
+        -- close after selection
+        if isOpen then
+            toggleDropdown()
+        end
     end
 
-    -- Build option buttons
+    -- create option buttons (destroys only TextButtons inside scroller)
     function createOptionButtons(list)
+        list = list or {}
         for _, child in ipairs(optionsScroller:GetChildren()) do
-            if child:IsA("TextButton") then child:Destroy() end
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
         end
+
         for i, opt in ipairs(list) do
             local btn = Instance.new("TextButton")
-            btn.Name = "Option_" .. i
+            btn.Name = "Option_" .. tostring(i)
             btn.Parent = optionsScroller
             btn.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
             btn.BorderSizePixel = 0
@@ -1430,94 +1455,171 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             btn.TextSize = 14
             btn.AutoButtonColor = false
             btn.ZIndex = 52
-            Instance.new("UICorner").Parent = btn
+            btn.LayoutOrder = i
+            local c = Instance.new("UICorner"); c.Parent = btn
 
-            btn.MouseButton1Click:Connect(function()
+            btn.Activated:Connect(function()
                 selectOption(opt)
             end)
         end
-        task.wait() -- let layout update
+
+        -- give layout a frame to update
+        task.wait(0)
         optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
     end
 
-    -- Toggle dropdown open/closed
+    -- helper: point in frame (using AbsolutePosition & AbsoluteSize)
+    local function pointInFrame(frame, point)
+        if not frame or not point then return false end
+        ensureRendered(frame)
+        local absPos = frame.AbsolutePosition
+        local absSize = frame.AbsoluteSize
+        return point.X >= absPos.X and point.X <= (absPos.X + absSize.X)
+           and point.Y >= absPos.Y and point.Y <= (absPos.Y + absSize.Y)
+    end
+
+    -- toggle open / close
     function toggleDropdown()
         isOpen = not isOpen
-        TweenService:Create(dropdownArrow, TweenInfo.new(0.15), { Rotation = isOpen and 180 or 0 }):Play()
+        TweenService:Create(dropdownArrow, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Rotation = isOpen and 180 or 0 }):Play()
 
         if isOpen then
+            -- ensure positions are available
+            ensureRendered(rootWindow)
+            ensureRendered(dropdownFrame)
+            task.wait(0) -- let Roblox compute AbsolutePosition/Size
+
             local dropdownAbsPos = dropdownFrame.AbsolutePosition
             local dropdownAbsSize = dropdownFrame.AbsoluteSize
             local windowAbsPos = rootWindow.AbsolutePosition
-            local relX = dropdownAbsPos.X - windowAbsPos.X
+
+            local relX = math.clamp(dropdownAbsPos.X - windowAbsPos.X, 0, math.max(0, rootWindow.AbsoluteSize.X - OPTIONS_WIDTH))
             local relY = dropdownAbsPos.Y - windowAbsPos.Y + dropdownAbsSize.Y
 
             optionsFrame.Position = UDim2.new(0, relX, 0, relY)
             optionsFrame.Visible = true
 
-            local contentHeight = optionsLayout.AbsoluteContentSize.Y
-            local maxHeight = rootWindow.AbsoluteSize.Y - (relY + 20)
-            local targetHeight = math.min(contentHeight, maxHeight)
-            TweenService:Create(optionsFrame, TweenInfo.new(0.18), { Size = UDim2.new(0, OPTIONS_WIDTH, 0, targetHeight) }):Play()
+            -- compute content height (wait a frame if zero)
+            if optionsLayout.AbsoluteContentSize.Y == 0 then task.wait(0) end
+            local contentHeight = math.max(0, optionsLayout.AbsoluteContentSize.Y)
+            local maxHeight = math.max(50, rootWindow.AbsoluteSize.Y - (relY + 20))
+            local targetHeight = math.min(math.max(contentHeight, OPTION_HEIGHT + OPTION_PADDING), maxHeight)
+
+            TweenService:Create(optionsFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, OPTIONS_WIDTH, 0, targetHeight)
+            }):Play()
         else
-            local closeTween = TweenService:Create(optionsFrame, TweenInfo.new(0.18), { Size = UDim2.new(0, OPTIONS_WIDTH, 0, 0) })
+            local closeTween = TweenService:Create(optionsFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, OPTIONS_WIDTH, 0, 0)
+            })
             closeTween:Play()
             closeTween.Completed:Connect(function()
-                if not isOpen then optionsFrame.Visible = false end
+                if not isOpen then
+                    optionsFrame.Visible = false
+                end
             end)
         end
     end
 
-    -- Main button click
-    dropdownButton.MouseButton1Click:Connect(function()
+    -- activation for button (works for mouse + touch)
+    dropdownButton.Activated:Connect(function()
         toggleDropdown()
     end)
 
-    -- Close on outside click
+    -- close on outside click (mouse or touch)
     local outsideConn
     outsideConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed or not isOpen then return end
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local pos = Vector2.new(input.Position.X, input.Position.Y)
-            local function inFrame(frame, p)
-                local absPos, absSize = frame.AbsolutePosition, frame.AbsoluteSize
-                return (p.X >= absPos.X and p.X <= absPos.X + absSize.X
-                    and p.Y >= absPos.Y and p.Y <= absPos.Y + absSize.Y)
+        if gameProcessed then return end
+        if not isOpen then return end
+
+        local typ = input.UserInputType
+        if typ == Enum.UserInputType.MouseButton1 or typ == Enum.UserInputType.Touch then
+            local pos = nil
+            -- Input.Position exists for both MouseButton1 & Touch
+            if input.Position then
+                pos = Vector2.new(input.Position.X, input.Position.Y)
+            else
+                -- fallback to mouse location
+                local m = UserInputService:GetMouseLocation()
+                pos = Vector2.new(m.X, m.Y)
             end
-            if not inFrame(dropdownFrame, pos) and not inFrame(optionsFrame, pos) then
+
+            if not pointInFrame(dropdownFrame, pos) and not pointInFrame(optionsFrame, pos) then
                 toggleDropdown()
             end
         end
     end)
 
-    -- Init
+    -- initialize contents and selection
     createOptionButtons(options)
     updateSelection(selectedOption)
 
-    -- API
+    -- public API
+    local outsideConnection = outsideConn
     return {
         Refresh = function(newOptions, newDefault)
+            local wasOpen = isOpen
             options = newOptions or options
             createOptionButtons(options)
-            selectedOption = newDefault or options[1] or selectedOption
+            selectedOption = newDefault or options[1] or selectedOption or "No options"
             updateSelection(selectedOption)
+
+            -- honor previous open state: if dropdown was open, resize & reposition
+            if wasOpen then
+                -- ensure we recalc and keep open
+                isOpen = true
+                TweenService:Create(dropdownArrow, TweenInfo.new(0.12), { Rotation = 180 }):Play()
+                task.wait(0)
+                -- reposition/resize like open path
+                local dropdownAbsPos = dropdownFrame.AbsolutePosition
+                local dropdownAbsSize = dropdownFrame.AbsoluteSize
+                local windowAbsPos = rootWindow.AbsolutePosition
+
+                local relX = math.clamp(dropdownAbsPos.X - windowAbsPos.X, 0, math.max(0, rootWindow.AbsoluteSize.X - OPTIONS_WIDTH))
+                local relY = dropdownAbsPos.Y - windowAbsPos.Y + dropdownAbsSize.Y
+
+                optionsFrame.Position = UDim2.new(0, relX, 0, relY)
+                optionsFrame.Visible = true
+
+                if optionsLayout.AbsoluteContentSize.Y == 0 then task.wait(0) end
+                local contentHeight = math.max(0, optionsLayout.AbsoluteContentSize.Y)
+                local maxHeight = math.max(50, rootWindow.AbsoluteSize.Y - (relY + 20))
+                local targetHeight = math.min(math.max(contentHeight, OPTION_HEIGHT + OPTION_PADDING), maxHeight)
+
+                TweenService:Create(optionsFrame, TweenInfo.new(0.12), { Size = UDim2.new(0, OPTIONS_WIDTH, 0, targetHeight) }):Play()
+            else
+                -- ensure closed visuals
+                isOpen = false
+                optionsFrame.Visible = false
+                optionsFrame.Size = UDim2.new(0, OPTIONS_WIDTH, 0, 0)
+                TweenService:Create(dropdownArrow, TweenInfo.new(0.12), { Rotation = 0 }):Play()
+            end
         end,
+
         SetOptions = function(newOptions)
             options = newOptions or {}
             createOptionButtons(options)
+            task.wait(0)
+            optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
         end,
+
         SetDescription = function(newDesc)
             baseDescription = newDesc or ""
             descLabel.Text = baseDescription .. (baseDescription ~= "" and " " or "") .. "(Selected: " .. tostring(selectedOption) .. ")"
         end,
+
         Destroy = function()
-            if outsideConn then outsideConn:Disconnect() end
-            if optionsFrame.Parent then optionsFrame:Destroy() end
-            if dropdownFrame.Parent then dropdownFrame:Destroy() end
-            if descLabel.Parent then descLabel:Destroy() end
+            if outsideConnection then
+                outsideConnection:Disconnect()
+                outsideConnection = nil
+            end
+            if optionsFrame and optionsFrame.Parent then optionsFrame:Destroy() end
+            if dropdownFrame and dropdownFrame.Parent then dropdownFrame:Destroy() end
+            if descLabel and descLabel.Parent then descLabel:Destroy() end
         end
     }
 end
+
 
 function Library:Destroy()
 	-- Check if the window exists
