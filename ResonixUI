@@ -1438,8 +1438,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
 
             -- Simple click handler for option buttons
             optionButton.MouseButton1Click:Connect(function()
-                updateSelection(option)
-                if isOpen then toggleDropdown() end -- ensures dropdown closes after selection
+                selectOption(option)
             end)
         end
     end
@@ -1459,9 +1458,14 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         arrowTween:Play()
 
         if isOpen then
+            -- Show the options frame
             optionsFrame.Visible = true
+
+            -- Calculate the required height based on number of options
             local maxHeight = self.ResonixWindow.Size.Y.Offset - 50
             local targetHeight = math.min(#options * 28, maxHeight)
+
+            -- Animate the options frame
             local optionsTween = tweenService:Create(
                 optionsFrame,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -1471,6 +1475,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             )
             optionsTween:Play()
         else
+            -- Animate the options frame closed
             local optionsTween = tweenService:Create(
                 optionsFrame,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -1479,6 +1484,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
                 }
             )
             optionsTween:Play()
+
             optionsTween.Completed:Connect(function()
                 if not isOpen then
                     optionsFrame.Visible = false
@@ -1495,43 +1501,105 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         end
     end
 
-    -- Button input
-    dropdownButton.MouseButton1Click:Connect(toggleDropdown)
+    -- Track touch input state
+    local touchStartPos = nil
+    local touchStartTime = 0
+    local isDragging = false
+    local maxTapDuration = 0.3
+    local maxTapMovement = 10
+
+    -- Mobile and desktop input handling for dropdown button
+    dropdownButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            touchStartPos = input.Position
+            touchStartTime = tick()
+            isDragging = false
+        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+            toggleDropdown()
+        end
+    end)
+
+    dropdownButton.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
+            local currentPos = input.Position
+            local movement = (currentPos - touchStartPos).magnitude
+
+            if movement > maxTapMovement then
+                isDragging = true
+            end
+        end
+    end)
+
+    dropdownButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
+            local touchDuration = tick() - touchStartTime
+            local endPos = input.Position
+            local movement = (endPos - touchStartPos).magnitude
+
+            if touchDuration <= maxTapDuration and movement <= maxTapMovement then
+                toggleDropdown()
+            end
+        end
+    end)
+
+    -- Close dropdown when clicking outside
+    local function onInputBegan(input)
+        if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local mousePos = input.Position
+            local isInDropdown = dropdownFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+            local isInOptions = optionsFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+
+            if not isInDropdown and not isInOptions then
+                toggleDropdown()
+            end
+        end
+    end
+
+    -- Connect the input handler
+    game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
 
     -- Create initial option buttons
     createOptionButtons(options)
 
-    -- Return the dropdown object with fixed refresh
+    -- Return the dropdown object with refresh capability
     return {
         Refresh = function(newOptions, newDefault)
-            -- Clear existing option buttons
+            -- Clear existing options
             for _, child in ipairs(optionsScroller:GetChildren()) do
                 if child:IsA("TextButton") then
                     child:Destroy()
                 end
             end
 
-            -- Update options and selected value
+            -- Update options
             options = newOptions or options
             selectedOption = newDefault or (options[1] and options[1] or "No options")
-
-            -- Update dropdown label and description
+            
+            -- Update selection display
             updateSelection(selectedOption)
-
-            -- Recreate option buttons
+            
+            -- Create new option buttons
             createOptionButtons(options)
-
-            -- Force update the scroller canvas size
-            task.wait(0.05)
+            
+            -- Close dropdown if open
+            if isOpen then
+                toggleDropdown()
+            end
+            
+            -- Force update canvas size
+            task.wait(0.1)
             optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
         end,
 
         SetOptions = function(newOptions)
+            -- Clear existing options
             for _, child in ipairs(optionsScroller:GetChildren()) do
                 if child:IsA("TextButton") then
                     child:Destroy()
                 end
             end
+
+            -- Add new options
             options = newOptions
             createOptionButtons(newOptions)
         end,
@@ -1542,20 +1610,23 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         end,
 
         Destroy = function()
+            -- Clean up the options frame
             if optionsFrame and optionsFrame.Parent then
                 optionsFrame:Destroy()
             end
+
+            -- Clean up the dropdown frame
             if dropdownFrame and dropdownFrame.Parent then
                 dropdownFrame:Destroy()
             end
+
+            -- Clean up the description label
             if descLabel and descLabel.Parent then
                 descLabel:Destroy()
             end
         end
     }
 end
-
-
 
 function Library:Destroy()
 	-- Check if the window exists
