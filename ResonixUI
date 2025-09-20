@@ -1416,9 +1416,27 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         if callback then callback(option) end
     end
 
+    -- Function to update options frame position
+    local function updateOptionsFramePosition()
+        if dropdownFrame and dropdownFrame.Parent then
+            local dropdownAbsolutePosition = dropdownFrame.AbsolutePosition
+            local dropdownAbsoluteSize = dropdownFrame.AbsoluteSize
+            
+            optionsFrame.Position = UDim2.new(
+                0, dropdownAbsolutePosition.X,
+                0, dropdownAbsolutePosition.Y + dropdownAbsoluteSize.Y + 5
+            )
+        end
+    end
+
     -- Define the function to toggle the dropdown
     local function toggleDropdown()
         isOpen = not isOpen
+
+        -- Update position before showing
+        if isOpen then
+            updateOptionsFramePosition()
+        end
 
         -- Rotate the arrow
         local arrowTween = tweenService:Create(
@@ -1510,12 +1528,21 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
 
     -- Store the input connection so we can disconnect it later
     local inputBeganConnection
+    local inputChangedConnection
+    local inputEndedConnection
+    local outsideClickConnection
     
     -- Function to handle dropdown button clicks
     local function setupDropdownButton()
         -- Disconnect any existing connections
         if inputBeganConnection then
             inputBeganConnection:Disconnect()
+        end
+        if inputChangedConnection then
+            inputChangedConnection:Disconnect()
+        end
+        if inputEndedConnection then
+            inputEndedConnection:Disconnect()
         end
         
         -- Mobile and desktop input handling for dropdown button
@@ -1529,7 +1556,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             end
         end)
 
-        dropdownButton.InputChanged:Connect(function(input)
+        inputChangedConnection = dropdownButton.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
                 local currentPos = input.Position
                 local movement = (currentPos - touchStartPos).magnitude
@@ -1540,7 +1567,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             end
         end)
 
-        dropdownButton.InputEnded:Connect(function(input)
+        inputEndedConnection = dropdownButton.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
                 local touchDuration = tick() - touchStartTime
                 local endPos = input.Position
@@ -1557,7 +1584,6 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     setupDropdownButton()
 
     -- Close dropdown when clicking outside
-    local outsideClickConnection
     local function setupOutsideClickHandler()
         if outsideClickConnection then
             outsideClickConnection:Disconnect()
@@ -1581,6 +1607,16 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
 
     -- Create initial option buttons
     createOptionButtons(options)
+
+    -- Update position when the window moves
+    local positionUpdateConnection
+    if self.ResonixWindow then
+        positionUpdateConnection = self.ResonixWindow:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+            if isOpen then
+                updateOptionsFramePosition()
+            end
+        end)
+    end
 
     -- Return the dropdown object with refresh capability
     return {
@@ -1635,8 +1671,17 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             if inputBeganConnection then
                 inputBeganConnection:Disconnect()
             end
+            if inputChangedConnection then
+                inputChangedConnection:Disconnect()
+            end
+            if inputEndedConnection then
+                inputEndedConnection:Disconnect()
+            end
             if outsideClickConnection then
                 outsideClickConnection:Disconnect()
+            end
+            if positionUpdateConnection then
+                positionUpdateConnection:Disconnect()
             end
 
             -- Clean up the options frame
