@@ -1508,76 +1508,55 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
     local maxTapDuration = 0.3
     local maxTapMovement = 10
 
-    -- Store the input connection so we can disconnect it later
-    local inputBeganConnection
-    
-    -- Function to handle dropdown button clicks
-    local function setupDropdownButton()
-        -- Disconnect any existing connections
-        if inputBeganConnection then
-            inputBeganConnection:Disconnect()
+    -- Mobile and desktop input handling for dropdown button
+    dropdownButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            touchStartPos = input.Position
+            touchStartTime = tick()
+            isDragging = false
+        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+            toggleDropdown()
         end
-        
-        -- Mobile and desktop input handling for dropdown button
-        inputBeganConnection = dropdownButton.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                touchStartPos = input.Position
-                touchStartTime = tick()
-                isDragging = false
-            elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+    end)
+
+    dropdownButton.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
+            local currentPos = input.Position
+            local movement = (currentPos - touchStartPos).magnitude
+
+            if movement > maxTapMovement then
+                isDragging = true
+            end
+        end
+    end)
+
+    dropdownButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
+            local touchDuration = tick() - touchStartTime
+            local endPos = input.Position
+            local movement = (endPos - touchStartPos).magnitude
+
+            if touchDuration <= maxTapDuration and movement <= maxTapMovement then
                 toggleDropdown()
             end
-        end)
-
-        dropdownButton.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
-                local currentPos = input.Position
-                local movement = (currentPos - touchStartPos).magnitude
-
-                if movement > maxTapMovement then
-                    isDragging = true
-                end
-            end
-        end)
-
-        dropdownButton.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and not isDragging then
-                local touchDuration = tick() - touchStartTime
-                local endPos = input.Position
-                local movement = (endPos - touchStartPos).magnitude
-
-                if touchDuration <= maxTapDuration and movement <= maxTapMovement then
-                    toggleDropdown()
-                end
-            end
-        end)
-    end
-
-    -- Set up the dropdown button initially
-    setupDropdownButton()
+        end
+    end)
 
     -- Close dropdown when clicking outside
-    local outsideClickConnection
-    local function setupOutsideClickHandler()
-        if outsideClickConnection then
-            outsideClickConnection:Disconnect()
-        end
-        
-        outsideClickConnection = game:GetService("UserInputService").InputBegan:Connect(function(input)
-            if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local mousePos = input.Position
-                local isInDropdown = dropdownFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
-                local isInOptions = optionsFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+    local function onInputBegan(input)
+        if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local mousePos = input.Position
+            local isInDropdown = dropdownFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
+            local isInOptions = optionsFrame:GetFullBoundingBox():PointInBoundingBox(mousePos)
 
-                if not isInDropdown and not isInOptions then
-                    toggleDropdown()
-                end
+            if not isInDropdown and not isInOptions then
+                toggleDropdown()
             end
-        end)
+        end
     end
 
-    -- Set up the outside click handler initially
-    setupOutsideClickHandler()
+    -- Connect the input handler
+    game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
 
     -- Create initial option buttons
     createOptionButtons(options)
@@ -1606,10 +1585,6 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             if isOpen then
                 toggleDropdown()
             end
-            
-            -- Re-setup event handlers
-            setupDropdownButton()
-            setupOutsideClickHandler()
         end,
 
         SetOptions = function(newOptions)
@@ -1631,14 +1606,6 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         end,
 
         Destroy = function()
-            -- Clean up connections
-            if inputBeganConnection then
-                inputBeganConnection:Disconnect()
-            end
-            if outsideClickConnection then
-                outsideClickConnection:Disconnect()
-            end
-
             -- Clean up the options frame
             if optionsFrame and optionsFrame.Parent then
                 optionsFrame:Destroy()
