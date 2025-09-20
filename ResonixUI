@@ -1416,6 +1416,33 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         if callback then callback(option) end
     end
 
+    -- Function to create option buttons
+    local function createOptionButtons(optionsList)
+        for _, option in ipairs(optionsList) do
+            local optionButton = Instance.new("TextButton")
+            optionButton.Parent = optionsScroller
+            optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+            optionButton.BorderSizePixel = 0
+            optionButton.Size = UDim2.new(1, -10, 0, 26)
+            optionButton.Position = UDim2.new(0, 5, 0, 0)
+            optionButton.Text = option
+            optionButton.Font = Enum.Font.GothamBold
+            optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+            optionButton.TextSize = 14
+            optionButton.AutoButtonColor = false
+            optionButton.ZIndex = 11
+
+            -- Add a UICorner to the option button
+            local optionCorner = Instance.new("UICorner")
+            optionCorner.Parent = optionButton
+
+            -- Simple click handler for option buttons
+            optionButton.MouseButton1Click:Connect(function()
+                selectOption(option)
+            end)
+        end
+    end
+
     -- Define the function to toggle the dropdown
     local function toggleDropdown()
         isOpen = not isOpen
@@ -1435,7 +1462,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             optionsFrame.Visible = true
 
             -- Calculate the required height based on number of options
-            local maxHeight = self.ResonixWindow.Size.Y.Offset - 0
+            local maxHeight = self.ResonixWindow.Size.Y.Offset - 50
             local targetHeight = math.min(#options * 28, maxHeight)
 
             -- Animate the options frame
@@ -1471,33 +1498,6 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         updateSelection(option)
         if isOpen then
             toggleDropdown()
-        end
-    end
-
-    -- Function to create option buttons
-    local function createOptionButtons(optionsList)
-        for _, option in ipairs(optionsList) do
-            local optionButton = Instance.new("TextButton")
-            optionButton.Parent = optionsScroller
-            optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
-            optionButton.BorderSizePixel = 0
-            optionButton.Size = UDim2.new(1, -10, 0, 26)
-            optionButton.Position = UDim2.new(0, 5, 0, 0)
-            optionButton.Text = option
-            optionButton.Font = Enum.Font.GothamBold
-            optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
-            optionButton.TextSize = 14
-            optionButton.AutoButtonColor = false
-            optionButton.ZIndex = 11
-
-            -- Add a UICorner to the option button
-            local optionCorner = Instance.new("UICorner")
-            optionCorner.Parent = optionButton
-
-            -- Simple click handler for option buttons
-            optionButton.MouseButton1Click:Connect(function()
-                selectOption(option)
-            end)
         end
     end
 
@@ -1573,7 +1573,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
 
             -- Update options
             options = newOptions or options
-            selectedOption = newDefault or options[1] or "No options"
+            selectedOption = newDefault or (options[1] and options[1] or "No options")
             
             -- Update selection display
             updateSelection(selectedOption)
@@ -1585,6 +1585,10 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
             if isOpen then
                 toggleDropdown()
             end
+            
+            -- Force update canvas size
+            task.wait(0.1)
+            optionsScroller.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
         end,
 
         SetOptions = function(newOptions)
