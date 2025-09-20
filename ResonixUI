@@ -1416,76 +1416,6 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         if callback then callback(option) end
     end
 
-    -- Function to create option buttons
-    local function createOptionButtons(optionsList)
-        for _, option in ipairs(optionsList) do
-            local optionButton = Instance.new("TextButton")
-            optionButton.Parent = optionsScroller
-            optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
-            optionButton.BorderSizePixel = 0
-            optionButton.Size = UDim2.new(1, -10, 0, 26)
-            optionButton.Position = UDim2.new(0, 5, 0, 0)
-            optionButton.Text = option
-            optionButton.Font = Enum.Font.GothamBold
-            optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
-            optionButton.TextSize = 14
-            optionButton.AutoButtonColor = false
-            optionButton.ZIndex = 11
-
-            -- Add a UICorner to the option button
-            local optionCorner = Instance.new("UICorner")
-            optionCorner.Parent = optionButton
-
-            -- Button press visual effect
-            optionButton.MouseButton1Click:Connect(function()
-                selectOption(option)
-            end)
-
-            -- Touch handling for option buttons
-            local optionTouchStartPos = nil
-            local optionTouchStartTime = 0
-            local optionIsDragging = false
-
-            optionButton.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    optionTouchStartPos = input.Position
-                    optionTouchStartTime = tick()
-                    optionIsDragging = false
-                    optionButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
-                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    optionButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
-                end
-            end)
-
-            optionButton.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch and optionTouchStartPos then
-                    local currentPos = input.Position
-                    local movement = (currentPos - optionTouchStartPos).magnitude
-
-                    if movement > maxTapMovement then
-                        optionIsDragging = true
-                    end
-                end
-            end)
-
-            optionButton.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch and optionTouchStartPos and not optionIsDragging then
-                    local touchDuration = tick() - optionTouchStartTime
-                    local endPos = input.Position
-                    local movement = (endPos - optionTouchStartPos).magnitude
-
-                    if touchDuration <= maxTapDuration and movement <= maxTapMovement then
-                        selectOption(option)
-                    end
-                    optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
-                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    selectOption(option)
-                    optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
-                end
-            end)
-        end
-    end
-
     -- Define the function to toggle the dropdown
     local function toggleDropdown()
         isOpen = not isOpen
@@ -1541,6 +1471,33 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         updateSelection(option)
         if isOpen then
             toggleDropdown()
+        end
+    end
+
+    -- Function to create option buttons
+    local function createOptionButtons(optionsList)
+        for _, option in ipairs(optionsList) do
+            local optionButton = Instance.new("TextButton")
+            optionButton.Parent = optionsScroller
+            optionButton.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
+            optionButton.BorderSizePixel = 0
+            optionButton.Size = UDim2.new(1, -10, 0, 26)
+            optionButton.Position = UDim2.new(0, 5, 0, 0)
+            optionButton.Text = option
+            optionButton.Font = Enum.Font.GothamBold
+            optionButton.TextColor3 = Color3.fromRGB(255, 0, 4)
+            optionButton.TextSize = 14
+            optionButton.AutoButtonColor = false
+            optionButton.ZIndex = 11
+
+            -- Add a UICorner to the option button
+            local optionCorner = Instance.new("UICorner")
+            optionCorner.Parent = optionButton
+
+            -- Simple click handler for option buttons
+            optionButton.MouseButton1Click:Connect(function()
+                selectOption(option)
+            end)
         end
     end
 
@@ -1666,6 +1623,7 @@ function Library:CreateDropdown(tabContainer, dropdownName, options, defaultOpti
         end
     }
 end
+
 function Library:Destroy()
 	-- Check if the window exists
 	if self.ResonixWindow and self.ResonixWindow.Parent then
